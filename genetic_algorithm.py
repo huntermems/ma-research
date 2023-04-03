@@ -1,5 +1,4 @@
 import random
-import math
 
 # Genetic Algorithm Parameters
 POPULATION_SIZE = 50
