@@ -20,13 +20,13 @@ CROSS_VELOCITY = 1
 CURVE_LENGTH = 3
 # w
 RACK_DISTANCE = 4
-
+# sc
 INITIAL_SR_AISLE = 0
 
 
 POPULATION_SIZE = 500
-MAX_GENERATIONS = 100000
-MUTATION_PROBABILITY = 0.1
+MAX_GENERATIONS = 1000
+MUTATION_PROBABILITY = 0.5
 CROSSOVER_PROBABILITY = 0.7
 
 # Local Search Parameters
@@ -95,7 +95,7 @@ def t4():
     return total_time
     
 # Objective Function
-def objective_function(solution):
+def total_t(solution):
     global current_aisle_of_sr
     global largest_aisle_to_be_visited
     global smallest_aisle_to_be_visited
@@ -112,6 +112,9 @@ def objective_function(solution):
     time += cross_time
     current_aisle_of_sr = INITIAL_SR_AISLE
     return time
+
+def objective_function(solution):
+    return 1/total_t(solution)
 
 # Genetic Algorithm Functions
 def create_individual():
@@ -250,6 +253,6 @@ def evolve_population(population):
 population = create_population()
 for generation in range(MAX_GENERATIONS):
     population = evolve_population(population)
-    best_individual = min(population, key=lambda individual: objective_function(individual))
-    print(f"Generation {generation}: Best Solution = {best_individual}, Best Fitness = {objective_function(best_individual)}")
+    best_individual = max(population, key=lambda individual: objective_function(individual))
+    print(f"Generation {generation}: Best Solution = {best_individual}, Best Fitness = {1/objective_function(best_individual)}")
 
