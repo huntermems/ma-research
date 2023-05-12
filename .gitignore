@@ -1,2 +1,4 @@
 .vscode
 warehouse.txt
+
+__pycache__

@@ -1,4 +1,5 @@
 import numpy as np
+import config
 
 def ant_colony(num_ants, num_iterations, alpha, beta, rho, Q, distances):
     """
@@ -22,6 +23,8 @@ def ant_colony(num_ants, num_iterations, alpha, beta, rho, Q, distances):
     # Initialize pheromone matrix tau with all ones
     num_cities = distances.shape[0]
     tau = np.ones((num_cities, num_cities))
+
+    print(tau)
     
     # Initialize best tour
     best_tour = None
