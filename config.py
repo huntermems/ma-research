@@ -1,10 +1,11 @@
+import sys
 import numpy as np
 
 # Genetic Algorithm Parameters
 # n
 NUMBER_OF_ROWS = 10
 # m
-NUMBER_OF_COLUMN = 78
+NUMBER_OF_COLUMN = 20
 # number of aisle
 NUMBER_OF_AISLE = 4
 # l
@@ -26,6 +27,8 @@ INITIAL_SR_AISLE = 0
 
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
 
+TEST = [(1, 2, 2), (0, 3, 3), (0, 0, 1), (1, 0, 0), (0, 0, 0)]
+
 current_aisle_of_sr = INITIAL_SR_AISLE
 
 largest_aisle_to_be_visited = 0
@@ -37,12 +40,43 @@ item_probability = [0.18 for _ in range(len(set(ITEM_NUMERATION)))]
 
 empty_probability = 1 - sum(item_probability)
 
+print(sys.argv)
+if '--use-external-warehouse' in sys.argv:
+    warehouse = None
+    racks = []
+    with open('warehouse.txt', 'r') as rf:
+        content = rf.read()
+        racks_text = content.split('\n\n')
+        for rack in racks_text:
+            rows = []   
+            rows_text = rack.split('\n')
+            for row in rows_text:
+                columns = row.split(', ')
+                rows.append(columns)
+            racks.append(rows)
+        warehouse = np.array(racks)
+    
+    if '--test' in sys.argv:
+        for item in TEST:
+            print(warehouse[item[0]][item[1]][item[2]])
+else:
+    warehouse = np.random.choice([*set(ITEM_NUMERATION), 0], size=(NUMBER_OF_AISLE*2, NUMBER_OF_ROWS, NUMBER_OF_COLUMN), p=[*item_probability, empty_probability])
+    with open('warehouse.txt', 'w') as f:
+        for idx, rack in enumerate(warehouse):
+            for ridx, row in enumerate(rack):
+                f.write(np.array2string(row, separator=', ', max_line_width=10000, formatter={'str_kind': lambda x: x})[1:-1])
+                if ridx != len(rack) - 1:
+                    f.write('\n')
+            if idx != len(warehouse) - 1:
+                f.write('\n\n')
 
-warehouse = np.random.choice([*set(ITEM_NUMERATION), 0], size=(NUMBER_OF_AISLE, NUMBER_OF_ROWS, NUMBER_OF_COLUMN), p=[*item_probability, empty_probability])
-with open('warehouse.txt', 'w') as f:
-    for row in warehouse:
-        f.write(np.array2string(row, separator=', ', max_line_width=10000))
-        f.write('\n\n')
+if '--print-warehouse' in sys.argv:
+    for idx, rack in enumerate(warehouse):
+        for ridx, row in enumerate(rack):
+            print(np.array2string(row, separator=', ', max_line_width=10000, formatter={'str_kind': lambda x: x})[1:-1])
+        if idx != len(warehouse) - 1:
+            print('\n')
+
 index_of_items = list(zip(*np.where(warehouse != '0')))
 
 item_location_mapping = {}

@@ -2,13 +2,20 @@ import numpy as np
 import random
 import config
 
-POPULATION_SIZE = 50
-MAX_GENERATIONS = 500
-MUTATION_PROBABILITY = 0.05
-CROSSOVER_PROBABILITY = 0.4
+POPULATION_SIZE = 100
+MAX_GENERATIONS = 1000
+MUTATION_PROBABILITY = 0.4
+CROSSOVER_PROBABILITY = 0.8
+
+best_solution = None
+best_fitness = 0
+best_time = 0
+best_generation = 0
 
 # Local Search Parameters
-MAX_NO_IMPROVEMENT = 10
+LOCAL_SEARCH_PROBABILITY = 0.5
+NUMBER_OF_NEIGHBORS = 2
+MAX_NO_IMPROVEMENT = 1
 
 random_instance = random.SystemRandom()
 
@@ -26,7 +33,7 @@ def create_individual():
             if chosen_item not in individual:
                 break
         individual.append(chosen_item)
-    np.random.shuffle(individual)
+    random_instance.shuffle(individual)
     return individual
 
 def create_population():
@@ -38,7 +45,7 @@ def evaluate_population(population):
 def select_parents(population, fitnesses):
     total_fitness = sum(fitnesses)
     probabilities = [fitness / total_fitness for fitness in fitnesses]
-    parents = random.choices(population, probabilities, k=2)
+    parents = random_instance.choices(population, probabilities, k=2)
     return parents
 
 def crossover(parents):
@@ -49,10 +56,14 @@ def crossover(parents):
     parent2 = parents[1]
     length = len(parent1)
     # Choose two random crossover points
-    cxpoint1 = np.random.randint(0, len(parent1) - 1)
-    cxpoint2 = np.random.randint(0, len(parent1) - 1)
+    cxpoint1 = 0
+    cxpoint2 = 0
+    while cxpoint1 == cxpoint2:
+        cxpoint1 = random_instance.randint(0, len(parent1) - 1)
+        cxpoint2 = random_instance.randint(0, len(parent1) - 1)
     if cxpoint1 > cxpoint2:
         cxpoint1, cxpoint2 = cxpoint2, cxpoint1
+    
     
     # Initialize offspring chromosomes
     child1 = parent2[:]
@@ -65,8 +76,17 @@ def crossover(parents):
         value2 = parent2[i]
 
         # Swap the values in the offspring
-        child1[child1.index(value2)] = value1
-        child2[child2.index(value1)] = value2
+        child1[i] = value1
+        child2[i] = value2
+
+    # Replace values outside the crossover range with 0
+    for i in range(length):
+        # Skip the values in the crossover range
+        if i >= cxpoint1 and i <= cxpoint2:
+            continue
+
+        child1[i] = 0
+        child2[i] = 0
         
     # Iterate over the rest of the values and perform the PMX
     for i in range(length):
@@ -81,8 +101,13 @@ def crossover(parents):
         # If the value is not already in the offspring, copy it over
         if value1 not in child1:
             child1[i] = value1
+        else:
+            child1[i] = value2
         if value2 not in child2:
-            child2[i] = value2            
+            child2[i] = value2   
+        else:
+            child2[i] = value1  
+  
     return child1, child2
 
 
@@ -111,29 +136,32 @@ def mutate(individual):
 
 # Local Search Functions
 def get_neighbors(individual):
-    x, y = individual
     neighbors = []
-    for dx in [-0.5, 0, 0.5]:
-        for dy in [-0.5, 0, 0.5]:
-            neighbor = (x + dx, y + dy)
-            if neighbor != individual and -10 <= neighbor[0] <= 10 and -10 <= neighbor[1] <= 10:
-                neighbors.append(neighbor)
+    for _ in range(NUMBER_OF_NEIGHBORS):
+        copy_of_individual = individual.copy()
+        first_index = random_instance.randint(0, len(copy_of_individual)-1)
+        second_index = random_instance.randint(0, len(copy_of_individual)-1)
+        copy_of_individual[first_index], copy_of_individual[second_index] = copy_of_individual[second_index], copy_of_individual[first_index]
+        neighbors.append(copy_of_individual)
+        
     return neighbors
 
 def local_search(initial_individual):
     current_individual = initial_individual
-    current_fitness = objective_function(current_individual)
-    no_improvement = 0
-    while no_improvement < MAX_NO_IMPROVEMENT:
-        neighbors = get_neighbors(current_individual)
-        neighbor_fitnesses = [objective_function(neighbor) for neighbor in neighbors]
-        if len(neighbor_fitnesses):
-            best_neighbor_fitness = min(neighbor_fitnesses)
-            if best_neighbor_fitness < current_fitness:
-                best_neighbor_index = neighbor_fitnesses.index(best_neighbor_fitness)
-                current_individual = neighbors[best_neighbor_index]
-                current_fitness = best_neighbor_fitness
-        no_improvement += 1
+    if random_instance.random() < LOCAL_SEARCH_PROBABILITY:
+        current_fitness = objective_function(current_individual)
+        no_improvement = 0
+        while no_improvement < MAX_NO_IMPROVEMENT:
+            neighbors = get_neighbors(current_individual)
+            neighbor_fitnesses = [objective_function(neighbor) for neighbor in neighbors]
+            if len(neighbor_fitnesses):
+                best_neighbor_fitness = max(neighbor_fitnesses)
+                if current_fitness < best_neighbor_fitness:
+                    best_neighbor_index = neighbor_fitnesses.index(best_neighbor_fitness)
+                    current_individual = neighbors[best_neighbor_index]
+                    current_fitness = best_neighbor_fitness
+            no_improvement += 1
+
     return current_individual
 
 
@@ -152,14 +180,29 @@ def evolve_population(population):
             else:
                 new_population.append(offspring)
     new_population.extend(population[:POPULATION_SIZE - len(new_population)])
-    # for i in range(len(new_population)):
-    #     new_population[i] = local_search(new_population[i])
+    for i in range(len(new_population)):
+        new_population[i] = local_search(new_population[i])
     return new_population
 
 
 population = create_population()
 for generation in range(MAX_GENERATIONS):
+    best_individual_order = []
     population = evolve_population(population)
     best_individual = max(population, key=lambda individual: objective_function(individual))
-    print(f"Generation {generation}: Best Solution = {best_individual}, Best Fitness = {1/objective_function(best_individual)}")
+    for item in best_individual:
+        best_individual_order.append(config.warehouse[item[0]][item[1]][item[2]])
+    fitness = objective_function(best_individual)
+    time = 1 / fitness
+    if fitness > best_fitness:
+        best_fitness = fitness
+        best_solution = best_individual
+        best_time = time
+        best_generation = generation
+    print(f"Generation {generation}: Best Solution = {best_individual_order}, Location = {best_individual}, Best Time = {time}")
 
+if best_solution:
+    solution_item_order = []
+    for item in best_solution:
+        solution_item_order.append(config.warehouse[item[0]][item[1]][item[2]])
+    print(f"Best generation {best_generation}: {solution_item_order}, Location: {best_solution}, Time: {best_time}, Fitness = {best_fitness}")
