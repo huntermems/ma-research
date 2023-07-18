@@ -31,6 +31,8 @@ TEST = [(1, 2, 2), (0, 3, 3), (0, 0, 1), (1, 0, 0), (0, 0, 0)]
 
 current_aisle_of_sr = INITIAL_SR_AISLE
 
+current_aisle_of_sr_for_aco = INITIAL_SR_AISLE
+
 largest_aisle_to_be_visited = 0
 smallest_aisle_to_be_visited = 0
 
