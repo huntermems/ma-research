@@ -143,3 +143,8 @@ def total_t(solution):
     time += cross_time
     current_aisle_of_sr = INITIAL_SR_AISLE
     return time
+
+# For debugging
+def exit(message):
+    print(message)
+    return sys.exit()

@@ -1,21 +1,29 @@
 import numpy as np
 import random
 import config
+import time
 
 POPULATION_SIZE = 100
-MAX_GENERATIONS = 1000
+MAX_GENERATIONS = 500
 MUTATION_PROBABILITY = 0.4
-CROSSOVER_PROBABILITY = 0.8
+CROSSOVER_PROBABILITY = 1
+
+MUTATION_UPPER_THRESHOLD = 0.6
+MUTATION_LOWER_THRESHOLD = 0.4
+MUTATION_RATE_STEP = 0.05
+
+# Local Search Parameters
+LOCAL_SEARCH_PROBABILITY = 0.35
+NUMBER_OF_NEIGHBORS = 5
+MAX_NO_IMPROVEMENT = 1
+
+previous_fitness = 0
+same_fitness_count = 0
 
 best_solution = None
 best_fitness = 0
 best_time = 0
 best_generation = 0
-
-# Local Search Parameters
-LOCAL_SEARCH_PROBABILITY = 0.5
-NUMBER_OF_NEIGHBORS = 2
-MAX_NO_IMPROVEMENT = 1
 
 random_instance = random.SystemRandom()
 
@@ -87,6 +95,9 @@ def crossover(parents):
 
         child1[i] = 0
         child2[i] = 0
+    # print(cxpoint1, cxpoint2)
+    # print(child1, child2)
+    # print(length)
         
     # Iterate over the rest of the values and perform the PMX
     for i in range(length):
@@ -101,12 +112,20 @@ def crossover(parents):
         # If the value is not already in the offspring, copy it over
         if value1 not in child1:
             child1[i] = value1
-        else:
+        elif value2 not in child1:
             child1[i] = value2
+        
         if value2 not in child2:
             child2[i] = value2   
-        else:
-            child2[i] = value1  
+        elif value1 not in child2:
+            child2[i] = value1
+
+    if not all([len(set(child1)) == len(config.ITEM_NUMERATION), len(set(child2)) == len(config.ITEM_NUMERATION)]):
+        print(cxpoint1, cxpoint2)
+        print(len(set(parent1)), len(set(parent2)), len(config.ITEM_NUMERATION))
+        print(f"Error Parent: {parent1} \n {parent2}")
+        print(len(set(child1)), len(set(child2)), len(config.ITEM_NUMERATION))
+        config.exit(f"Error Child: {child1} \n {child2}")
   
     return child1, child2
 
@@ -123,10 +142,10 @@ def mutate(individual):
         # Get the item's list of location
         item_locations = config.item_location_mapping[item_name]
 
-        item_new = indexes_of_gene_to_change
+        item_new = selected_gene
 
         # Select a new location for the item
-        while item_new == indexes_of_gene_to_change:
+        while item_new in individual:
             item_new = item_locations[np.random.choice(len(item_locations))]
             
         individual[indexes_of_gene_to_change] = item_new
@@ -166,6 +185,10 @@ def local_search(initial_individual):
 
 
 def evolve_population(population):
+    global previous_fitness
+    global same_fitness_count
+    global MUTATION_PROBABILITY
+
     fitnesses = evaluate_population(population)
     new_population = []
     for _ in range(POPULATION_SIZE // 2):
@@ -182,8 +205,26 @@ def evolve_population(population):
     new_population.extend(population[:POPULATION_SIZE - len(new_population)])
     for i in range(len(new_population)):
         new_population[i] = local_search(new_population[i])
+
+    # Increase mutation chance if same fitness score is repeated
+    best_individual = max(new_population, key=lambda individual: objective_function(individual))
+    current_fitness = objective_function(best_individual)
+    if current_fitness == previous_fitness:
+        if same_fitness_count > 10:
+            if MUTATION_PROBABILITY < MUTATION_UPPER_THRESHOLD:
+                MUTATION_PROBABILITY += MUTATION_RATE_STEP
+            same_fitness_count = 0
+        same_fitness_count += 1
+        previous_fitness = current_fitness
+    else:
+        if MUTATION_PROBABILITY > MUTATION_LOWER_THRESHOLD:
+            MUTATION_PROBABILITY -= MUTATION_RATE_STEP
+        previous_fitness = current_fitness
+        same_fitness_count = 0
     return new_population
 
+
+start_time = time.perf_counter()
 
 population = create_population()
 for generation in range(MAX_GENERATIONS):
@@ -193,16 +234,19 @@ for generation in range(MAX_GENERATIONS):
     for item in best_individual:
         best_individual_order.append(config.warehouse[item[0]][item[1]][item[2]])
     fitness = objective_function(best_individual)
-    time = 1 / fitness
+    current_time = 1 / fitness
     if fitness > best_fitness:
         best_fitness = fitness
         best_solution = best_individual
-        best_time = time
+        best_time = current_time
         best_generation = generation
-    print(f"Generation {generation}: Best Solution = {best_individual_order}, Location = {best_individual}, Best Time = {time}")
+    print(f"Generation {generation}: Best Solution = {best_individual_order}, Location = {best_individual}, Best Time = {current_time}")
 
 if best_solution:
     solution_item_order = []
     for item in best_solution:
         solution_item_order.append(config.warehouse[item[0]][item[1]][item[2]])
     print(f"Best generation {best_generation}: {solution_item_order}, Location: {best_solution}, Time: {best_time}, Fitness = {best_fitness}")
+
+print("--- Executed in %s seconds ---" % (time.perf_counter() - start_time))
+print(MUTATION_PROBABILITY)
