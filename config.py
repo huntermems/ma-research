@@ -27,7 +27,8 @@ INITIAL_SR_AISLE = 0
 
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
 
-TEST = [(1, 2, 2), (0, 3, 3), (0, 0, 1), (1, 0, 0), (0, 0, 0)]
+TEST = [(4, 0, 0), (4, 1, 0), (5, 2, 1), (5, 0, 0), (5, 2, 2)]
+
 
 current_aisle_of_sr = INITIAL_SR_AISLE
 
@@ -58,9 +59,6 @@ if '--use-external-warehouse' in sys.argv:
             racks.append(rows)
         warehouse = np.array(racks)
 
-    if '--test' in sys.argv:
-        for item in TEST:
-            print(warehouse[item[0]][item[1]][item[2]])
 else:
     warehouse = np.random.choice([*set(ITEM_NUMERATION), 0], size=(NUMBER_OF_AISLE*2,
                                  NUMBER_OF_ROWS, NUMBER_OF_COLUMN), p=[*item_probability, empty_probability])
@@ -95,8 +93,10 @@ def t1(item):
     global current_aisle_of_sr
     total_time = 0
     if item[0] // 2 == current_aisle_of_sr:
-        vertical_moving_time = (item[1] + 1) / VERTICAL_VELOCITY
-        horizontal_moving_time = (item[2] + 1) / HORIZONTAL_VELOCITY
+        vertical_moving_time = (item[1] + 1) * \
+            HEIGHT_OF_STORAGE_BIN / VERTICAL_VELOCITY
+        horizontal_moving_time = (
+            item[2] + 1) * LENGTH_OF_STORAGE_BIN / HORIZONTAL_VELOCITY
         total_time += 2 * \
             round(max(vertical_moving_time, horizontal_moving_time), 1)
 
@@ -119,9 +119,11 @@ def t3(item):
     total_time = 0
     if item[0] // 2 != current_aisle_of_sr:
         partial_horizontal_moving_time = (
-            (NUMBER_OF_ROWS - item[2] + 1) * LENGTH_OF_STORAGE_BIN) / HORIZONTAL_VELOCITY
-        vertical_moving_time = (item[1] + 1) / VERTICAL_VELOCITY
-        horizontal_moving_time = (item[2] + 1) / HORIZONTAL_VELOCITY
+            NUMBER_OF_COLUMN - item[2] + 1) * LENGTH_OF_STORAGE_BIN / HORIZONTAL_VELOCITY
+        vertical_moving_time = (item[1] + 1) * \
+            HEIGHT_OF_STORAGE_BIN / VERTICAL_VELOCITY
+        horizontal_moving_time = (
+            item[2] + 1) * LENGTH_OF_STORAGE_BIN / HORIZONTAL_VELOCITY
         total_time += partial_horizontal_moving_time + \
             max(vertical_moving_time, horizontal_moving_time)
         current_aisle_of_sr = item[0] // 2
@@ -147,6 +149,8 @@ def total_t(solution):
     global largest_aisle_to_be_visited
     global smallest_aisle_to_be_visited
 
+    current_aisle_of_sr = INITIAL_SR_AISLE
+
     time = 0
     maximum_rack_number = max(solution, key=lambda x: x[0])[0]
     minimum_rack_number = min(solution, key=lambda x: x[0])[0]
@@ -157,12 +161,18 @@ def total_t(solution):
     for item in solution:
         time += t1(item) + t2(item) + t3(item)
     time += cross_time
-    current_aisle_of_sr = INITIAL_SR_AISLE
     return time
 
 # For debugging
 
 
-def exit(message):
+if '--test' in sys.argv:
+    for item in TEST:
+        print(warehouse[item[0]][item[1]][item[2]])
+    print(total_t(TEST))
+    exit()
+
+
+def exit(message=''):
     print(message)
     return sys.exit()

@@ -175,12 +175,12 @@ def get_neighbors(individual):
     return neighbors
 
 
-def local_search(initial_individual):
+def local_hga_search(initial_individual, probablity, max_no_improvement):
     current_individual = initial_individual
-    if random_instance.random() < LOCAL_SEARCH_PROBABILITY:
+    if random_instance.random() < probablity:
         current_fitness = objective_function(current_individual)
         no_improvement = 0
-        while no_improvement < MAX_NO_IMPROVEMENT:
+        while no_improvement < max_no_improvement:
             neighbors = get_neighbors(current_individual)
             neighbor_fitnesses = [objective_function(
                 neighbor) for neighbor in neighbors]
@@ -194,6 +194,9 @@ def local_search(initial_individual):
             no_improvement += 1
 
     return current_individual
+
+def local_search(initial_individual, probablity, max_no_improvement):
+    return local_hga_search(initial_individual, probablity, max_no_improvement)
 
 
 def evolve_population(population):
@@ -216,7 +219,7 @@ def evolve_population(population):
                 new_population.append(offspring)
     new_population.extend(population[:POPULATION_SIZE - len(new_population)])
     for i in range(len(new_population)):
-        new_population[i] = local_search(new_population[i])
+        new_population[i] = local_search(new_population[i], LOCAL_SEARCH_PROBABILITY, MAX_NO_IMPROVEMENT)
 
     # Increase mutation chance if same fitness score is repeated
     best_individual = max(
@@ -241,21 +244,21 @@ start_time = time.perf_counter()
 
 population = create_population()
 for generation in range(MAX_GENERATIONS):
-    best_individual_order = []
+    individual_order = []
     population = evolve_population(population)
     best_individual = max(
         population, key=lambda individual: objective_function(individual))
     for item in best_individual:
-        best_individual_order.append(
+        individual_order.append(
             config.warehouse[item[0]][item[1]][item[2]])
     fitness = objective_function(best_individual)
-    current_time = 1 / fitness
+    current_time = config.total_t(best_individual)
     if fitness > best_fitness:
         best_fitness = fitness
         best_solution = best_individual
         best_time = current_time
         best_generation = generation
-    print(f"Generation {generation}: Best Solution = {best_individual_order}, Location = {best_individual}, Best Time = {current_time}")
+    print(f"Generation {generation}: Best Solution = {individual_order}, Location = {best_individual}, Best Time = {current_time}")
 
 if best_solution:
     solution_item_order = []
@@ -265,4 +268,3 @@ if best_solution:
         f"Best generation {best_generation}: {solution_item_order}, Location: {best_solution}, Time: {best_time}, Fitness = {best_fitness}")
 
 print("--- Executed in %s seconds ---" % (time.perf_counter() - start_time))
-print(MUTATION_PROBABILITY)
