@@ -1,6 +1,7 @@
 import numpy as np
 import random
 
+
 class AntColonyOptimization:
     def __init__(self, num_ants, num_iterations, pheromone_weight, heuristic_weight, evaporation_rate):
         self.num_ants = num_ants
@@ -30,11 +31,13 @@ class AntColonyOptimization:
 
                 while path[-1] != end_vertex:
                     current_vertex = path[-1]
-                    probabilities = self.calculate_probabilities(current_vertex, visited, end_vertex)
+                    probabilities = self.calculate_probabilities(
+                        current_vertex, visited, end_vertex)
                     next_vertex = self.select_next_vertex(probabilities)
                     path.append(next_vertex)
                     visited.add(next_vertex)
-                    path_length += self.calculate_distance(current_vertex, next_vertex)
+                    path_length += self.calculate_distance(
+                        current_vertex, next_vertex)
 
                 paths.append(path)
                 path_lengths.append(path_length)
@@ -54,7 +57,8 @@ class AntColonyOptimization:
         for vertex in range(len(self.pheromone_matrix)):
             if vertex not in visited:
                 pheromone = self.pheromone_matrix[current_vertex][vertex] ** self.pheromone_weight
-                heuristic = (1.0 / self.calculate_distance(current_vertex, vertex)) ** self.heuristic_weight
+                heuristic = (
+                    1.0 / self.calculate_distance(current_vertex, vertex)) ** self.heuristic_weight
                 probabilities.append(pheromone * heuristic)
                 pheromone_sum += pheromone * heuristic
             else:
@@ -79,7 +83,8 @@ class AntColonyOptimization:
             for j in range(len(path) - 1):
                 vertex1 = path[j]
                 vertex2 = path[j + 1]
-                self.pheromone_matrix[vertex1][vertex2] += 1.0 / path_lengths[i]
+                self.pheromone_matrix[vertex1][vertex2] += 1.0 / \
+                    path_lengths[i]
 
     def calculate_distance(self, vertex1, vertex2):
         # You can define your own distance calculation between two vertices
@@ -104,8 +109,10 @@ class AntColonyOptimization:
         vertex = rack * (num_rows * num_columns) + row * num_columns + col
         return vertex
 
+
 # Example usage
-aco = AntColonyOptimization(num_ants=10, num_iterations=100, pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1)
+aco = AntColonyOptimization(num_ants=10, num_iterations=100,
+                            pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1)
 
 # Initialize the pheromone matrix
 num_racks = 5  # Example: 5 racks

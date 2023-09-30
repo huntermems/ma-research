@@ -27,15 +27,18 @@ best_generation = 0
 
 random_instance = random.SystemRandom()
 
+
 def objective_function(solution):
     return 1/config.total_t(solution)
 
 # Genetic Algorithm Functions
+
+
 def create_individual():
     individual = []
     for item in config.ITEM_NUMERATION:
         chosen_item = ''
-        while True: 
+        while True:
             item_locations = config.item_location_mapping[item]
             chosen_item = item_locations[np.random.choice(len(item_locations))]
             if chosen_item not in individual:
@@ -44,17 +47,21 @@ def create_individual():
     random_instance.shuffle(individual)
     return individual
 
+
 def create_population():
     return [create_individual() for _ in range(POPULATION_SIZE)]
 
+
 def evaluate_population(population):
     return [objective_function(solution) for solution in population]
+
 
 def select_parents(population, fitnesses):
     total_fitness = sum(fitnesses)
     probabilities = [fitness / total_fitness for fitness in fitnesses]
     parents = random_instance.choices(population, probabilities, k=2)
     return parents
+
 
 def crossover(parents):
     """Perform PMX crossover on two parent chromosomes"""
@@ -71,12 +78,11 @@ def crossover(parents):
         cxpoint2 = random_instance.randint(0, len(parent1) - 1)
     if cxpoint1 > cxpoint2:
         cxpoint1, cxpoint2 = cxpoint2, cxpoint1
-    
-    
+
     # Initialize offspring chromosomes
     child1 = parent2[:]
     child2 = parent1[:]
-    
+
     # Iterate over the crossover points and perform the PMX
     for i in range(cxpoint1, cxpoint2 + 1):
         # Get the values at the current position in each parent
@@ -98,7 +104,7 @@ def crossover(parents):
     # print(cxpoint1, cxpoint2)
     # print(child1, child2)
     # print(length)
-        
+
     # Iterate over the rest of the values and perform the PMX
     for i in range(length):
         # Skip the values in the crossover range
@@ -114,9 +120,9 @@ def crossover(parents):
             child1[i] = value1
         elif value2 not in child1:
             child1[i] = value2
-        
+
         if value2 not in child2:
-            child2[i] = value2   
+            child2[i] = value2
         elif value1 not in child2:
             child2[i] = value1
 
@@ -126,7 +132,7 @@ def crossover(parents):
         print(f"Error Parent: {parent1} \n {parent2}")
         print(len(set(child1)), len(set(child2)), len(config.ITEM_NUMERATION))
         config.exit(f"Error Child: {child1} \n {child2}")
-  
+
     return child1, child2
 
 
@@ -137,7 +143,8 @@ def mutate(individual):
         selected_gene = individual[indexes_of_gene_to_change]
 
         # Get the item name
-        item_name = config.warehouse[selected_gene[0]][selected_gene[1]][selected_gene[2]]
+        item_name = config.warehouse[selected_gene[0]
+                                     ][selected_gene[1]][selected_gene[2]]
 
         # Get the item's list of location
         item_locations = config.item_location_mapping[item_name]
@@ -147,13 +154,15 @@ def mutate(individual):
         # Select a new location for the item
         while item_new in individual:
             item_new = item_locations[np.random.choice(len(item_locations))]
-            
+
         individual[indexes_of_gene_to_change] = item_new
         return individual
     else:
         return None
 
 # Local Search Functions
+
+
 def get_neighbors(individual):
     neighbors = []
     for _ in range(NUMBER_OF_NEIGHBORS):
@@ -162,8 +171,9 @@ def get_neighbors(individual):
         second_index = random_instance.randint(0, len(copy_of_individual)-1)
         copy_of_individual[first_index], copy_of_individual[second_index] = copy_of_individual[second_index], copy_of_individual[first_index]
         neighbors.append(copy_of_individual)
-        
+
     return neighbors
+
 
 def local_search(initial_individual):
     current_individual = initial_individual
@@ -172,11 +182,13 @@ def local_search(initial_individual):
         no_improvement = 0
         while no_improvement < MAX_NO_IMPROVEMENT:
             neighbors = get_neighbors(current_individual)
-            neighbor_fitnesses = [objective_function(neighbor) for neighbor in neighbors]
+            neighbor_fitnesses = [objective_function(
+                neighbor) for neighbor in neighbors]
             if len(neighbor_fitnesses):
                 best_neighbor_fitness = max(neighbor_fitnesses)
                 if current_fitness < best_neighbor_fitness:
-                    best_neighbor_index = neighbor_fitnesses.index(best_neighbor_fitness)
+                    best_neighbor_index = neighbor_fitnesses.index(
+                        best_neighbor_fitness)
                     current_individual = neighbors[best_neighbor_index]
                     current_fitness = best_neighbor_fitness
             no_improvement += 1
@@ -207,7 +219,8 @@ def evolve_population(population):
         new_population[i] = local_search(new_population[i])
 
     # Increase mutation chance if same fitness score is repeated
-    best_individual = max(new_population, key=lambda individual: objective_function(individual))
+    best_individual = max(
+        new_population, key=lambda individual: objective_function(individual))
     current_fitness = objective_function(best_individual)
     if current_fitness == previous_fitness:
         if same_fitness_count > 10:
@@ -230,9 +243,11 @@ population = create_population()
 for generation in range(MAX_GENERATIONS):
     best_individual_order = []
     population = evolve_population(population)
-    best_individual = max(population, key=lambda individual: objective_function(individual))
+    best_individual = max(
+        population, key=lambda individual: objective_function(individual))
     for item in best_individual:
-        best_individual_order.append(config.warehouse[item[0]][item[1]][item[2]])
+        best_individual_order.append(
+            config.warehouse[item[0]][item[1]][item[2]])
     fitness = objective_function(best_individual)
     current_time = 1 / fitness
     if fitness > best_fitness:
@@ -246,7 +261,8 @@ if best_solution:
     solution_item_order = []
     for item in best_solution:
         solution_item_order.append(config.warehouse[item[0]][item[1]][item[2]])
-    print(f"Best generation {best_generation}: {solution_item_order}, Location: {best_solution}, Time: {best_time}, Fitness = {best_fitness}")
+    print(
+        f"Best generation {best_generation}: {solution_item_order}, Location: {best_solution}, Time: {best_time}, Fitness = {best_fitness}")
 
 print("--- Executed in %s seconds ---" % (time.perf_counter() - start_time))
 print(MUTATION_PROBABILITY)

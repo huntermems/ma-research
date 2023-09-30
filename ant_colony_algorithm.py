@@ -5,6 +5,7 @@ import numpy as np
 HEURISTIC_WEIGHT = 2
 PHEROMONE_WEIGHT = 1
 
+
 class AntColonyAlgorithm:
 
     number_vertices = len(config.ITEM_NUMERATION)
@@ -16,7 +17,7 @@ class AntColonyAlgorithm:
         self.pheromone_weight = pheromone_weight
         self.heuristic_weight = heuristic_weight
         self.evaporation_rate = evaporation_rate
-    
+
     def calculate_probabilities(self, current_vertex, visited):
         probabilities = []
         pheromone_sum = 0.0
@@ -24,7 +25,8 @@ class AntColonyAlgorithm:
         for vertex in range(len(self.distances)):
             if vertex not in visited:
                 pheromone = self.pheromone_matrix[current_vertex][vertex] ** self.pheromone_weight
-                heuristic = (1.0 / self.distances[current_vertex][vertex]) ** self.heuristic_weight
+                heuristic = (
+                    1.0 / self.distances[current_vertex][vertex]) ** self.heuristic_weight
                 probabilities.append(pheromone * heuristic)
                 pheromone_sum += pheromone * heuristic
             else:
@@ -32,8 +34,8 @@ class AntColonyAlgorithm:
 
         probabilities = [p / pheromone_sum for p in probabilities]
         return probabilities
-    
-    def select_next_vertex(current_vertex):
+
+    def select_next_vertex(self, current_vertex):
         pass
 
     def calculate_distance(current_vertex, next_vertex):
@@ -58,19 +60,21 @@ class AntColonyAlgorithm:
                     path_length = 0.0
                 while len(visited) < self.num_vertices:
                     current_vertex = path[-1]
-                    probabilities = self.calculate_probabilities(current_vertex, visited)
+                    probabilities = self.calculate_probabilities(
+                        current_vertex, visited)
                     next_vertex = self.select_next_vertex(probabilities)
                     path.append(next_vertex)
                     visited.add(next_vertex)
-                    path_length += self.calculate_distance(current_vertex, next_vertex)
+                    path_length += self.calculate_distance(
+                        current_vertex, next_vertex)
 
                 paths.append(path)
                 path_lengths.append(path_length)
-                
+
                 if path_length < best_path_length:
                     best_path_length = path_length
                     best_path = path
-            
+
                 self.update_pheromone(paths, path_lengths)
             if best_path and best_path_length < best_solution_path_length:
                 best_solution_path_length = best_path_length
