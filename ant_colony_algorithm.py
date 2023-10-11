@@ -1,82 +1,99 @@
-import random
-import config
 import numpy as np
+import random
 
-HEURISTIC_WEIGHT = 2
-PHEROMONE_WEIGHT = 1
-
-
-class AntColonyAlgorithm:
-
-    number_vertices = len(config.ITEM_NUMERATION)
-    pheromone_matrix = np.ones((number_vertices, number_vertices))
-
-    def __init__(self, num_ants, num_iterations, pheromone_weight, heuristic_weight, evaporation_rate):
+class AntColonyOptimization:
+    def __init__(self, num_ants, num_iterations, pheromone_weight, heuristic_weight, evaporation_rate, num_cities):
         self.num_ants = num_ants
         self.num_iterations = num_iterations
         self.pheromone_weight = pheromone_weight
         self.heuristic_weight = heuristic_weight
         self.evaporation_rate = evaporation_rate
+        self.distances = np.zeros((num_cities, num_cities))
+        self.pheromone_matrix = np.ones((num_cities, num_cities))
 
-    def calculate_probabilities(self, current_vertex, visited):
-        probabilities = []
-        pheromone_sum = 0.0
+    def add_distance(self, city1, city2, distance):
+        self.distances[city1][city2] = distance
+        self.distances[city2][city1] = distance
 
-        for vertex in range(len(self.distances)):
-            if vertex not in visited:
-                pheromone = self.pheromone_matrix[current_vertex][vertex] ** self.pheromone_weight
-                heuristic = (
-                    1.0 / self.distances[current_vertex][vertex]) ** self.heuristic_weight
-                probabilities.append(pheromone * heuristic)
-                pheromone_sum += pheromone * heuristic
-            else:
-                probabilities.append(0.0)
+    def run(self):
+        num_cities = len(self.distances)
+        best_path = None
+        best_path_length = np.inf
 
-        probabilities = [p / pheromone_sum for p in probabilities]
-        return probabilities
+        for iteration in range(self.num_iterations):
+            paths = []
+            path_lengths = []
 
-    def select_next_vertex(self, current_vertex):
-        pass
+            for ant in range(self.num_ants):
+                path = self.construct_path(num_cities)
+                path_length = self.calculate_path_length(path)
 
-    def calculate_distance(current_vertex, next_vertex):
-        pass
-
-    def update_pheromone(paths, path_lengths):
-        pass
-
-    def run(self, solution):
-        best_solution_path = None
-        best_solution_path_length = np.inf
-        for item in solution:
-            best_path = None
-            best_path_length = np.inf
-            for _ in range(self.num_iterations):
-                paths = []
-                path_lengths = []
-
-                for _ in range(self.num_ants):
-                    path = [item]
-                    visited = set([item])
-                    path_length = 0.0
-                while len(visited) < self.num_vertices:
-                    current_vertex = path[-1]
-                    probabilities = self.calculate_probabilities(
-                        current_vertex, visited)
-                    next_vertex = self.select_next_vertex(probabilities)
-                    path.append(next_vertex)
-                    visited.add(next_vertex)
-                    path_length += self.calculate_distance(
-                        current_vertex, next_vertex)
+                if path_length < best_path_length:
+                    best_path_length = path_length
+                    best_path = path.copy()
 
                 paths.append(path)
                 path_lengths.append(path_length)
 
-                if path_length < best_path_length:
-                    best_path_length = path_length
-                    best_path = path
+            self.update_pheromone(paths, path_lengths)
 
-                self.update_pheromone(paths, path_lengths)
-            if best_path and best_path_length < best_solution_path_length:
-                best_solution_path_length = best_path_length
-                best_solution_path = best_path
-        return best_solution_path, best_solution_path_length
+        return best_path, best_path_length
+
+    def construct_path(self, num_cities):
+        start_city = random.randint(0, num_cities - 1)
+        path = [start_city]
+        visited = set([start_city])
+
+        while len(visited) < num_cities:
+            current_city = path[-1]
+            next_city = self.select_next_city(current_city, visited)
+            path.append(next_city)
+            visited.add(next_city)
+
+        return path
+
+    def select_next_city(self, current_city, visited):
+        probabilities = self.calculate_probabilities(current_city, visited)
+        return np.random.choice(len(probabilities), 1, p=probabilities)[0]
+
+    def calculate_probabilities(self, current_city, visited):
+        pheromone_sum = 0.0
+
+        for city in range(len(self.distances)):
+            if city not in visited:
+                pheromone = self.pheromone_matrix[current_city][city] ** self.pheromone_weight
+                heuristic = (1.0 / self.distances[current_city][city]) ** self.heuristic_weight
+                pheromone_sum += pheromone * heuristic
+
+        probabilities = []
+
+        for city in range(len(self.distances)):
+            if city in visited:
+                probabilities.append(0.0)
+            else:
+                pheromone = self.pheromone_matrix[current_city][city] ** self.pheromone_weight
+                heuristic = (1.0 / self.distances[current_city][city]) ** self.heuristic_weight
+                probability = (pheromone * heuristic) / pheromone_sum
+                probabilities.append(probability)
+
+        return probabilities
+
+    def calculate_path_length(self, path):
+        length = 0.0
+
+        for i in range(len(path) - 1):
+            city1 = path[i]
+            city2 = path[i + 1]
+            length += self.distances[city1][city2]
+
+        length += self.distances[path[-1]][path[0]]
+        return length
+
+    def update_pheromone(self, paths, path_lengths):
+        self.pheromone_matrix *= (1.0 - self.evaporation_rate)
+
+        for i, path in enumerate(paths):
+            for j in range(len(path) - 1):
+                city1 = path[j]
+                city2 = path[j + 1]
+                self.pheromone_matrix[city1][city2] += 1.0 / path_lengths[i]

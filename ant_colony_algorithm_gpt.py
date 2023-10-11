@@ -1,7 +1,6 @@
 import numpy as np
 import random
 
-
 class AntColonyOptimization:
     def __init__(self, num_ants, num_iterations, pheromone_weight, heuristic_weight, evaporation_rate):
         self.num_ants = num_ants
@@ -9,130 +8,117 @@ class AntColonyOptimization:
         self.pheromone_weight = pheromone_weight
         self.heuristic_weight = heuristic_weight
         self.evaporation_rate = evaporation_rate
+        self.distances = None
         self.pheromone_matrix = None
 
-    def initialize(self, num_racks, num_rows, num_columns):
-        num_vertices = num_racks * num_rows * num_columns
-        self.pheromone_matrix = np.ones((num_vertices, num_vertices))
+    def initialize(self, num_cities):
+        self.distances = np.zeros((num_cities, num_cities))
+        self.pheromone_matrix = np.ones((num_cities, num_cities))
 
-    def run(self, start_vertex, end_vertex):
-        num_vertices = len(self.pheromone_matrix)
+    def add_distance(self, city1, city2, distance):
+        self.distances[city1][city2] = distance
+        self.distances[city2][city1] = distance
+
+    def run(self):
+        num_cities = len(self.distances)
         best_path = None
         best_path_length = np.inf
 
-        for _ in range(self.num_iterations):
+        for iteration in range(self.num_iterations):
             paths = []
             path_lengths = []
 
-            for _ in range(self.num_ants):
-                path = [start_vertex]
-                visited = set([start_vertex])
-                path_length = 0.0
-
-                while path[-1] != end_vertex:
-                    current_vertex = path[-1]
-                    probabilities = self.calculate_probabilities(
-                        current_vertex, visited, end_vertex)
-                    next_vertex = self.select_next_vertex(probabilities)
-                    path.append(next_vertex)
-                    visited.add(next_vertex)
-                    path_length += self.calculate_distance(
-                        current_vertex, next_vertex)
-
-                paths.append(path)
-                path_lengths.append(path_length)
+            for ant in range(self.num_ants):
+                path = self.construct_path(num_cities)
+                path_length = self.calculate_path_length(path)
 
                 if path_length < best_path_length:
                     best_path_length = path_length
-                    best_path = path
+                    best_path = path.copy()
+
+                paths.append(path)
+                path_lengths.append(path_length)
 
             self.update_pheromone(paths, path_lengths)
 
         return best_path, best_path_length
 
-    def calculate_probabilities(self, current_vertex, visited, end_vertex):
-        probabilities = []
+    def construct_path(self, num_cities):
+        start_city = random.randint(0, num_cities - 1)
+        path = [start_city]
+        visited = set([start_city])
+
+        while len(visited) < num_cities:
+            current_city = path[-1]
+            next_city = self.select_next_city(current_city, visited)
+            path.append(next_city)
+            visited.add(next_city)
+
+        return path
+
+    def select_next_city(self, current_city, visited):
+        probabilities = self.calculate_probabilities(current_city, visited)
+        return np.random.choice(len(probabilities), 1, p=probabilities)[0]
+
+    def calculate_probabilities(self, current_city, visited):
         pheromone_sum = 0.0
 
-        for vertex in range(len(self.pheromone_matrix)):
-            if vertex not in visited:
-                pheromone = self.pheromone_matrix[current_vertex][vertex] ** self.pheromone_weight
-                heuristic = (
-                    1.0 / self.calculate_distance(current_vertex, vertex)) ** self.heuristic_weight
-                probabilities.append(pheromone * heuristic)
+        for city in range(len(self.distances)):
+            if city not in visited:
+                pheromone = self.pheromone_matrix[current_city][city] ** self.pheromone_weight
+                heuristic = (1.0 / self.distances[current_city][city]) ** self.heuristic_weight
                 pheromone_sum += pheromone * heuristic
-            else:
-                probabilities.append(0.0)
 
-        probabilities = [p / pheromone_sum for p in probabilities]
+        probabilities = []
+
+        for city in range(len(self.distances)):
+            if city in visited:
+                probabilities.append(0.0)
+            else:
+                pheromone = self.pheromone_matrix[current_city][city] ** self.pheromone_weight
+                heuristic = (1.0 / self.distances[current_city][city]) ** self.heuristic_weight
+                probability = (pheromone * heuristic) / pheromone_sum
+                probabilities.append(probability)
+
         return probabilities
 
-    def select_next_vertex(self, probabilities):
-        r = random.random()
-        cumulative_prob = 0.0
+    def calculate_path_length(self, path):
+        length = 0.0
 
-        for i, probability in enumerate(probabilities):
-            cumulative_prob += probability
-            if cumulative_prob >= r:
-                return i
+        for i in range(len(path) - 1):
+            city1 = path[i]
+            city2 = path[i + 1]
+            length += self.distances[city1][city2]
+
+        length += self.distances[path[-1]][path[0]]
+        return length
 
     def update_pheromone(self, paths, path_lengths):
         self.pheromone_matrix *= (1.0 - self.evaporation_rate)
 
         for i, path in enumerate(paths):
             for j in range(len(path) - 1):
-                vertex1 = path[j]
-                vertex2 = path[j + 1]
-                self.pheromone_matrix[vertex1][vertex2] += 1.0 / \
-                    path_lengths[i]
-
-    def calculate_distance(self, vertex1, vertex2):
-        # You can define your own distance calculation between two vertices
-        # based on the rack, row, and column information
-        rack1, row1, col1 = self.decode_vertex(vertex1)
-        rack2, row2, col2 = self.decode_vertex(vertex2)
-
-        # Calculate the distance based on the rack, row, and column information
-        distance = ...  # Your distance calculation logic here
-
-        return distance
-
-    def decode_vertex(self, vertex):
-        num_rows, num_columns = self.pheromone_matrix.shape
-        rack = vertex // (num_rows * num_columns)
-        row = (vertex // num_columns) % num_rows
-        col = vertex % num_columns
-        return rack, row, col
-
-    def encode_vertex(self, rack, row, col):
-        num_rows, num_columns = self.pheromone_matrix.shape
-        vertex = rack * (num_rows * num_columns) + row * num_columns + col
-        return vertex
-
+                city1 = path[j]
+                city2 = path[j + 1]
+                self.pheromone_matrix[city1][city2] += 1.0 / path_lengths[i]
 
 # Example usage
-aco = AntColonyOptimization(num_ants=10, num_iterations=100,
-                            pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1)
+aco = AntColonyOptimization(num_ants=10, num_iterations=100, pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1)
 
-# Initialize the pheromone matrix
-num_racks = 5  # Example: 5 racks
-num_rows = 10  # Example: 10 rows per rack
-num_columns = 20  # Example: 20 columns per rack
-aco.initialize(num_racks, num_rows, num_columns)
+# Initialize the distances and pheromone matrix (example for 4 cities)
+num_cities = 4
+aco.initialize(num_cities)
 
-# Define the start and end vertices
-start_rack = 0
-start_row = 0
-start_col = 0
-start_vertex = aco.encode_vertex(start_rack, start_row, start_col)
-
-end_rack = 2
-end_row = 5
-end_col = 10
-end_vertex = aco.encode_vertex(end_rack, end_row, end_col)
+# Add distances between cities (example distances)
+aco.add_distance(0, 1, 10)
+aco.add_distance(0, 2, 15)
+aco.add_distance(0, 3, 20)
+aco.add_distance(1, 2, 35)
+aco.add_distance(1, 3, 25)
+aco.add_distance(2, 3, 30)
 
 # Run the algorithm
-best_path, best_path_length = aco.run(start_vertex, end_vertex)
+best_path, best_path_length = aco.run()
 
 # Print the results
 print("Best Path:", best_path)

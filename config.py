@@ -23,11 +23,13 @@ CURVE_LENGTH = 3
 # w
 RACK_DISTANCE = 4
 # sc
-INITIAL_SR_AISLE = 0
+INITIAL_SR_AISLE = 3
 
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
 
-TEST = [(4, 0, 0), (4, 1, 0), (5, 2, 1), (5, 0, 0), (5, 2, 2)]
+ORDER_LENGTH = len(ITEM_NUMERATION)
+
+TEST = [(7, 0, 0), (6, 0, 0), (6, 1, 1), (7, 0, 1), (6, 0, 1)]
 
 
 current_aisle_of_sr = INITIAL_SR_AISLE
@@ -144,24 +146,29 @@ def t4():
 # Objective Function
 
 
-def total_t(solution):
+def total_t(solution, reset_aisle=True):
     global current_aisle_of_sr
     global largest_aisle_to_be_visited
     global smallest_aisle_to_be_visited
 
-    current_aisle_of_sr = INITIAL_SR_AISLE
+    if reset_aisle:
+        current_aisle_of_sr = INITIAL_SR_AISLE
 
-    time = 0
-    maximum_rack_number = max(solution, key=lambda x: x[0])[0]
-    minimum_rack_number = min(solution, key=lambda x: x[0])[0]
+    try:
+        time = 0
+        maximum_rack_number = max(solution, key=lambda x: x[0])[0]
+        minimum_rack_number = min(solution, key=lambda x: x[0])[0]
 
-    largest_aisle_to_be_visited = maximum_rack_number // 2
-    smallest_aisle_to_be_visited = minimum_rack_number // 2
-    cross_time = t4()
-    for item in solution:
-        time += t1(item) + t2(item) + t3(item)
-    time += cross_time
-    return time
+        largest_aisle_to_be_visited = maximum_rack_number // 2
+        smallest_aisle_to_be_visited = minimum_rack_number // 2
+        cross_time = t4()
+        for item in solution:
+            time += t1(item) + t2(item) + t3(item)
+        time += cross_time
+        return time
+    except Exception as e:
+        print(e)
+        print(solution)
 
 # For debugging
 
