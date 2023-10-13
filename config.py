@@ -7,11 +7,11 @@ NUMBER_OF_ROWS = 39
 # m
 NUMBER_OF_COLUMN = 20
 # number of aisle
-NUMBER_OF_AISLE = 4
+NUMBER_OF_AISLE = 3
 # l
-LENGTH_OF_STORAGE_BIN = 1
+LENGTH_OF_STORAGE_BIN = 6
 # h
-HEIGHT_OF_STORAGE_BIN = 1
+HEIGHT_OF_STORAGE_BIN = 6
 # vy
 VERTICAL_VELOCITY = 3
 # vx
@@ -23,11 +23,13 @@ CURVE_LENGTH = 3
 # w
 RACK_DISTANCE = 4
 # sc
-INITIAL_SR_AISLE = 3
+INITIAL_SR_AISLE = 0
+
+DENSITY = 0.15
 
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
 
-ORDER = ['A', 'B', 'C']
+ORDER = ['A', 'B']
 
 ORDER_LENGTH = len(ORDER)
 
@@ -43,7 +45,7 @@ smallest_aisle_to_be_visited = 0
 
 aisle_rack_mapping = [(0, 1), (2, 3), (4, 5), (6, 7)]
 
-item_probability = [0.18 for _ in range(len(set(ITEM_NUMERATION)))]
+item_probability = [DENSITY for _ in range(len(set(ITEM_NUMERATION)))]
 
 empty_probability = 1 - sum(item_probability)
 

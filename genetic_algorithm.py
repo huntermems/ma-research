@@ -4,18 +4,14 @@ import config
 import itertools
 from ant_colony_algorithm import AntColonyOptimization
 
-POPULATION_SIZE = 150
-MAX_GENERATIONS = 200
-MUTATION_PROBABILITY = 0.5
-CROSSOVER_PROBABILITY = 0.3
-
-# MUTATION_UPPER_THRESHOLD = 0.6
-# MUTATION_LOWER_THRESHOLD = 0.4
-# MUTATION_RATE_STEP = 0.05
+POPULATION_SIZE = 100
+MAX_GENERATIONS = 400
+MUTATION_PROBABILITY = 0.3
+CROSSOVER_PROBABILITY = 0.6
 
 # Local Search Parameters
-NUMBER_OF_NEIGHBORS = 1
-MAX_NO_IMPROVEMENT = 1
+NUMBER_OF_NEIGHBORS = 2
+MAX_NO_IMPROVEMENT = 3
 
 
 def objective_function(solution):
@@ -69,17 +65,12 @@ class HybridGeneticAlgorithm:
         while i < num_parents:
             max_value = max(copy_fitnesses)
             idx = copy_fitnesses.index(max_value)
-            if i >= 1:
-                flag = False
-                for item in population[idx]:
-                    if item in list(itertools.chain(*parents)):
-                        copy_fitnesses[idx] = -99999
-                        flag = True
-                if flag == True:
-                    continue
+            if i >= 1 and population[idx] in parents:
+                copy_fitnesses[idx] = -99999
+                continue
             parents.append(population[idx])
             copy_fitnesses[idx] = -99999
-            i += 1
+            i+=1
 
         return parents
 
@@ -96,7 +87,7 @@ class HybridGeneticAlgorithm:
         # Choose two random crossover points
         cxpoint1 = 0
         cxpoint2 = 0
-        while cxpoint1 == cxpoint2 or set([cxpoint1, cxpoint2]) == set([0, length - 1]):
+        while cxpoint1 == cxpoint2 or set([cxpoint1, cxpoint2]) == set([0, length - 1]) and length > 2:
             cxpoint1 = self.random_instance.randint(0, length - 1)
             cxpoint2 = self.random_instance.randint(0, length - 1)
         if cxpoint1 > cxpoint2:
@@ -124,29 +115,27 @@ class HybridGeneticAlgorithm:
 
             # Get the values at the current position in each parent
             value1 = parent1[i]
-            value2 = parent2[i]
-
-
+            idx1 = i
             # If the value is not already in the offspring, copy it over
-            if value1 not in child1 and config.get_order_type(value1) not in [config.get_order_type(it) for it in child1]:
-                child1[i] = value1
-            else:
-                child1[i] = value2
-            
+            while value1 in child1:
+                idx1 = child1.index(value1)
+                value1 = child2[idx1]
+            child1[i] = value1
 
-            if value2 not in child2 and config.get_order_type(value2) not in [config.get_order_type(it) for it in child2]:
-                child2[i] = value2
-            else:
-                child2[i] = value1
-            
-            # print("Cross point: ", cxpoint1, cxpoint2)
-            # if cxpoint1 == 1 and cxpoint2 == 2:
-            #     print(parents)
-            #     print(config.get_order_type(value1))
-            #     print([config.get_order_type(it) for it in child1])
-            #     print(value1, value2)
-            #     print(child1, child2)
-            #     exit()
+        for i in range(length):
+            # Skip the values in the crossover range
+            if i >= cxpoint1 and i <= cxpoint2:
+                continue
+
+            # Get the values at the current position in each parent
+            value2 = parent2[i]
+            idx2 = i
+            # If the value is not already in the offspring, copy it over
+            while value2 in child2:
+                idx2 = child2.index(value2)
+                value2 = child1[idx2]
+                    
+            child2[i] = value2
 
         if not all([len(set(child1)) == config.ORDER_LENGTH, len(set(child2)) == config.ORDER_LENGTH]):
             print(cxpoint1, cxpoint2)
@@ -225,7 +214,7 @@ class HybridGeneticAlgorithm:
     def local_aco_search(self, initial_individual, probablity, max_no_improvement):
         current_individual = initial_individual
         if self.random_instance.random() < probablity:
-            aco = AntColonyOptimization(num_ants=5, num_iterations=10,
+            aco = AntColonyOptimization(num_ants=5, num_iterations=5,
                                         pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1, num_cities=len(current_individual))
             for i in range(len(current_individual)):
                 for j in range(len(current_individual)):
@@ -249,12 +238,6 @@ class HybridGeneticAlgorithm:
         new_population = []
         for i in range(POPULATION_SIZE // 2):
             parents = self.select_parents(copy_population, fitnesses)
-            for parent in parents:
-                individual = []
-                for item in parent:
-                    individual.append(
-                        config.warehouse[item[0]][item[1]][item[2]])
-                # print(individual)
             offspring1, offspring2 = self.crossover(parents)
             # print("Iter ", i)
             # print("Parents ", parents)
@@ -297,8 +280,8 @@ class HybridGeneticAlgorithm:
                 best_solution = best_individual
                 best_time = current_time
                 best_generation = generation
-            print(
-                f"Generation {generation}: Best Solution = {individual_order}, Location = {best_individual}, Best Time = {current_time}")
+            # print(
+                # f"Generation {generation}: Best Solution = {individual_order}, Location = {best_individual}, Best Time = {current_time}")
 
         # print(population)
         # for p in population:
