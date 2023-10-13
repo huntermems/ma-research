@@ -197,7 +197,7 @@ class HybridGeneticAlgorithm:
     def local_aco_search(self, initial_individual, probablity, max_no_improvement):
         current_individual = initial_individual
         if self.random_instance.random() < probablity:
-            aco = AntColonyOptimization(num_ants=3, num_iterations=3,
+            aco = AntColonyOptimization(num_ants=5, num_iterations=10,
                                         pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1, num_cities=len(current_individual))
             for i in range(len(current_individual)):
                 for j in range(len(current_individual)):

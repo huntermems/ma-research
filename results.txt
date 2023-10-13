@@ -10,3 +10,8 @@ Time executed with aco local search:  [25.378045297002245, 25.473535548000655, 2
 Average Time executed w/o local search:  6.522251291800058
 Average Time executed with local search:  7.13001022990029
 Average Time executed with aco local search:  25.40750424470025
+
+Generation with aco local search:  [205, 474, 263, 88, 323, 146, 467, 312, 404, 299]
+Average generation that produces best result (with aco ls):  298.1
+Time executed with aco local search:  [13.510224842999833, 13.447889169000064, 13.409621155999957, 13.147263671000019, 13.116014386000188, 13.161264972000026, 13.217929152000124, 13.42679609600009, 13.663436494000052, 13.096059511000021]
+Average Time executed with aco local search:  13.319649945000037

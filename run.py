@@ -7,10 +7,10 @@ RAND_GEN = sourcerandom.SourceRandom(source=sourcerandom.OnlineRandomnessSource.
 
 RAND_GEN.randbytes(random.randint(1,30))
 
-NO_OF_TEST = 1
+NO_OF_TEST = 10
 
-run_ga = True
-run_hga = True
+run_ga = False
+run_hga = False
 run_aco = True
 
 if run_ga:
@@ -46,7 +46,7 @@ if run_aco:
     generation_w_aco_ls = []
     average_generation_with_aco_local_search = 0
     for _ in range(NO_OF_TEST):
-        local_search_prob = 0.2
+        local_search_prob = 0.03
         start_time_with_aco_ls = time.perf_counter()
         instance = HybridGeneticAlgorithm(random_instance = random.SystemRandom(RAND_GEN.randbytes(random.randint(5,10))))
         generation_with_aco_ls = instance.hga(local_search_prob, aco=True)
