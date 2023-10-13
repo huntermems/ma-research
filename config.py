@@ -3,7 +3,7 @@ import numpy as np
 
 # Genetic Algorithm Parameters
 # n
-NUMBER_OF_ROWS = 10
+NUMBER_OF_ROWS = 39
 # m
 NUMBER_OF_COLUMN = 20
 # number of aisle
@@ -27,9 +27,11 @@ INITIAL_SR_AISLE = 3
 
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
 
-ORDER_LENGTH = len(ITEM_NUMERATION)
+ORDER = ['A', 'B', 'C']
 
-TEST = [(7, 0, 0), (6, 0, 0), (6, 1, 1), (7, 0, 1), (6, 0, 1)]
+ORDER_LENGTH = len(ORDER)
+
+TEST = [(7, 6, 6), (6, 9, 4), (6, 13, 16)]
 
 
 current_aisle_of_sr = INITIAL_SR_AISLE
@@ -90,6 +92,10 @@ for item in ITEM_NUMERATION:
     item_locations = list(zip(*np.where(warehouse == item)))
     item_location_mapping[item] = item_locations
 
+def get_order_type(item):
+    if item == 0:
+        return 0
+    return warehouse[item[0]][item[1]][item[2]]
 
 def t1(item):
     global current_aisle_of_sr

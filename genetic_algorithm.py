@@ -1,17 +1,17 @@
 import numpy as np
 import random
 import config
-import time
+import itertools
 from ant_colony_algorithm import AntColonyOptimization
 
-POPULATION_SIZE = 100
-MAX_GENERATIONS = 500
-MUTATION_PROBABILITY = 0.4
-CROSSOVER_PROBABILITY = 1
+POPULATION_SIZE = 150
+MAX_GENERATIONS = 200
+MUTATION_PROBABILITY = 0.5
+CROSSOVER_PROBABILITY = 0.3
 
-MUTATION_UPPER_THRESHOLD = 0.6
-MUTATION_LOWER_THRESHOLD = 0.4
-MUTATION_RATE_STEP = 0.05
+# MUTATION_UPPER_THRESHOLD = 0.6
+# MUTATION_LOWER_THRESHOLD = 0.4
+# MUTATION_RATE_STEP = 0.05
 
 # Local Search Parameters
 NUMBER_OF_NEIGHBORS = 1
@@ -37,7 +37,7 @@ class HybridGeneticAlgorithm:
     # Genetic Algorithm Functions
     def create_individual(self):
         individual = []
-        for item in config.ITEM_NUMERATION:
+        for item in config.ORDER:
             chosen_item = ''
             while True:
                 item_locations = config.item_location_mapping[item]
@@ -50,15 +50,37 @@ class HybridGeneticAlgorithm:
         return individual
 
     def create_population(self):
-        return [self.create_individual() for _ in range(POPULATION_SIZE)]
+        population = []
+        for _ in range(POPULATION_SIZE):
+            while True:
+                individual = self.create_individual()
+                if individual not in population:
+                    population.append(individual)
+                    break
+        return population
 
     def evaluate_population(self, population):
         return [objective_function(solution) for solution in population]
 
-    def select_parents(self, population, fitnesses):
-        total_fitness = sum(fitnesses)
-        probabilities = [fitness / total_fitness for fitness in fitnesses]
-        parents = self.random_instance.choices(population, probabilities, k=2)
+    def select_parents(self, population, fitnesses, num_parents=2):
+        parents = []
+        copy_fitnesses = fitnesses.copy()
+        i = 0
+        while i < num_parents:
+            max_value = max(copy_fitnesses)
+            idx = copy_fitnesses.index(max_value)
+            if i >= 1:
+                flag = False
+                for item in population[idx]:
+                    if item in list(itertools.chain(*parents)):
+                        copy_fitnesses[idx] = -99999
+                        flag = True
+                if flag == True:
+                    continue
+            parents.append(population[idx])
+            copy_fitnesses[idx] = -99999
+            i += 1
+
         return parents
 
     def crossover(self, parents):
@@ -68,18 +90,21 @@ class HybridGeneticAlgorithm:
         parent1 = parents[0]
         parent2 = parents[1]
         length = len(parent1)
+        if parent1 == parent2:
+            print(parents)
+            exit()
         # Choose two random crossover points
         cxpoint1 = 0
         cxpoint2 = 0
-        while cxpoint1 == cxpoint2:
-            cxpoint1 = self.random_instance.randint(0, len(parent1) - 1)
-            cxpoint2 = self.random_instance.randint(0, len(parent1) - 1)
+        while cxpoint1 == cxpoint2 or set([cxpoint1, cxpoint2]) == set([0, length - 1]):
+            cxpoint1 = self.random_instance.randint(0, length - 1)
+            cxpoint2 = self.random_instance.randint(0, length - 1)
         if cxpoint1 > cxpoint2:
             cxpoint1, cxpoint2 = cxpoint2, cxpoint1
 
         # Initialize offspring chromosomes
-        child1 = parent2[:]
-        child2 = parent1[:]
+        child1 = [0 for _ in range(length)]
+        child2 = [0 for _ in range(length)]
 
         # Iterate over the crossover points and perform the PMX
         for i in range(cxpoint1, cxpoint2 + 1):
@@ -88,20 +113,8 @@ class HybridGeneticAlgorithm:
             value2 = parent2[i]
 
             # Swap the values in the offspring
-            child1[i] = value1
-            child2[i] = value2
-
-        # Replace values outside the crossover range with 0
-        for i in range(length):
-            # Skip the values in the crossover range
-            if i >= cxpoint1 and i <= cxpoint2:
-                continue
-
-            child1[i] = 0
-            child2[i] = 0
-        # print(cxpoint1, cxpoint2)
-        # print(child1, child2)
-        # print(length)
+            child1[i] = value2
+            child2[i] = value1
 
         # Iterate over the rest of the values and perform the PMX
         for i in range(length):
@@ -113,26 +126,40 @@ class HybridGeneticAlgorithm:
             value1 = parent1[i]
             value2 = parent2[i]
 
+
             # If the value is not already in the offspring, copy it over
-            if value1 not in child1:
+            if value1 not in child1 and config.get_order_type(value1) not in [config.get_order_type(it) for it in child1]:
                 child1[i] = value1
-            elif value2 not in child1:
+            else:
                 child1[i] = value2
+            
 
-            if value2 not in child2:
+            if value2 not in child2 and config.get_order_type(value2) not in [config.get_order_type(it) for it in child2]:
                 child2[i] = value2
-            elif value1 not in child2:
+            else:
                 child2[i] = value1
+            
+            # print("Cross point: ", cxpoint1, cxpoint2)
+            # if cxpoint1 == 1 and cxpoint2 == 2:
+            #     print(parents)
+            #     print(config.get_order_type(value1))
+            #     print([config.get_order_type(it) for it in child1])
+            #     print(value1, value2)
+            #     print(child1, child2)
+            #     exit()
 
-        if not all([len(set(child1)) == len(config.ITEM_NUMERATION), len(set(child2)) == len(config.ITEM_NUMERATION)]):
+        if not all([len(set(child1)) == config.ORDER_LENGTH, len(set(child2)) == config.ORDER_LENGTH]):
             print(cxpoint1, cxpoint2)
             print(len(set(parent1)), len(set(parent2)),
-                  len(config.ITEM_NUMERATION))
+                  config.ORDER_LENGTH)
             print(f"Error Parent: {parent1} \n {parent2}")
             print(len(set(child1)), len(set(child2)),
-                  len(config.ITEM_NUMERATION))
+                  config.ORDER_LENGTH)
             config.exit(f"Error Child: {child1} \n {child2}")
 
+        # print(length)
+        # print(parents)
+        # print(child1, child2)
         return child1, child2
 
     def mutate(self, individual):
@@ -166,7 +193,8 @@ class HybridGeneticAlgorithm:
         neighbors = []
         for _ in range(NUMBER_OF_NEIGHBORS):
             copy_of_individual = individual.copy()
-            first_index = self.random_instance.randint(0, len(copy_of_individual)-1)
+            first_index = self.random_instance.randint(
+                0, len(copy_of_individual)-1)
             second_index = self.random_instance.randint(
                 0, len(copy_of_individual)-1)
             copy_of_individual[first_index], copy_of_individual[second_index] = copy_of_individual[second_index], copy_of_individual[first_index]
@@ -216,20 +244,28 @@ class HybridGeneticAlgorithm:
             return self.local_hga_search(initial_individual, probablity, max_no_improvement)
 
     def evolve_population(self, population, local_search_prob, aco):
-        global MUTATION_PROBABILITY
-
-        fitnesses = self.evaluate_population(population)
+        copy_population = population.copy()
+        fitnesses = self.evaluate_population(copy_population)
         new_population = []
-        for _ in range(POPULATION_SIZE // 2):
-            parents = self.select_parents(population, fitnesses)
+        for i in range(POPULATION_SIZE // 2):
+            parents = self.select_parents(copy_population, fitnesses)
+            for parent in parents:
+                individual = []
+                for item in parent:
+                    individual.append(
+                        config.warehouse[item[0]][item[1]][item[2]])
+                # print(individual)
             offspring1, offspring2 = self.crossover(parents)
+            # print("Iter ", i)
+            # print("Parents ", parents)
+            # print("Offspings ", offspring1, offspring2)
             if offspring1 == None and offspring2 == None:
                 continue
             for offspring in [offspring1, offspring2]:
                 mutation = self.mutate(offspring)
-                if mutation is not None:
+                if mutation is not None and mutation not in population and mutation not in new_population:
                     new_population.append(mutation)
-                else:
+                elif offspring not in population and offspring not in new_population:
                     new_population.append(offspring)
         new_population.extend(
             population[:POPULATION_SIZE - len(new_population)])
@@ -237,22 +273,6 @@ class HybridGeneticAlgorithm:
             new_population[i] = self.local_search(
                 new_population[i], local_search_prob, MAX_NO_IMPROVEMENT, aco)
 
-        # Increase mutation chance if same fitness score is repeated
-        best_individual = max(
-            new_population, key=lambda individual: objective_function(individual))
-        current_fitness = objective_function(best_individual)
-        if current_fitness == self.previous_fitness:
-            if self.same_fitness_count > 10:
-                if MUTATION_PROBABILITY < MUTATION_UPPER_THRESHOLD:
-                    MUTATION_PROBABILITY += MUTATION_RATE_STEP
-                self.same_fitness_count = 0
-            self.same_fitness_count += 1
-            self.previous_fitness = current_fitness
-        else:
-            if MUTATION_PROBABILITY > MUTATION_LOWER_THRESHOLD:
-                MUTATION_PROBABILITY -= MUTATION_RATE_STEP
-            self.previous_fitness = current_fitness
-            self.same_fitness_count = 0
         return new_population
 
     def hga(self, local_search_prob, aco=False):
@@ -263,7 +283,8 @@ class HybridGeneticAlgorithm:
         population = self.create_population()
         for generation in range(MAX_GENERATIONS):
             individual_order = []
-            population = self.evolve_population(population, local_search_prob, aco)
+            population = self.evolve_population(
+                population, local_search_prob, aco)
             best_individual = max(
                 population, key=lambda individual: objective_function(individual))
             for item in best_individual:
@@ -279,11 +300,17 @@ class HybridGeneticAlgorithm:
             print(
                 f"Generation {generation}: Best Solution = {individual_order}, Location = {best_individual}, Best Time = {current_time}")
 
+        # print(population)
+        # for p in population:
+        #     id = []
+        #     for item in p:
+        #         id.append(config.get_order_type(item))
+        #     print(id)
         if best_solution:
             solution_item_order = []
             for item in best_solution:
                 solution_item_order.append(
                     config.warehouse[item[0]][item[1]][item[2]])
-            print(
-                f"Best generation {best_generation}: {solution_item_order}, Location: {best_solution}, Time: {best_time}, Fitness = {best_fitness}")
-        return best_generation
+            # print(
+            #     f"Best generation {best_generation}: {solution_item_order}, Location: {best_solution}, Time: {best_time}, Fitness = {best_fitness}")
+        return best_time
