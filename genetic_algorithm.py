@@ -4,14 +4,14 @@ import config
 import itertools
 from ant_colony_algorithm import AntColonyOptimization
 
-POPULATION_SIZE = 100
-MAX_GENERATIONS = 400
-MUTATION_PROBABILITY = 0.3
+POPULATION_SIZE = 200
+MAX_GENERATIONS = 500
+MUTATION_PROBABILITY = 0.4
 CROSSOVER_PROBABILITY = 0.6
 
 # Local Search Parameters
-NUMBER_OF_NEIGHBORS = 2
-MAX_NO_IMPROVEMENT = 3
+NUMBER_OF_NEIGHBORS = 5
+MAX_NO_IMPROVEMENT = 5
 
 
 def objective_function(solution):
@@ -26,6 +26,8 @@ class HybridGeneticAlgorithm:
 
     previous_fitness = 0
     same_fitness_count = 0
+
+    occurences = {}
 
     def __init__(self, random_instance):
         self.random_instance = random_instance
@@ -70,7 +72,7 @@ class HybridGeneticAlgorithm:
                 continue
             parents.append(population[idx])
             copy_fitnesses[idx] = -99999
-            i+=1
+            i += 1
 
         return parents
 
@@ -107,6 +109,8 @@ class HybridGeneticAlgorithm:
             child1[i] = value2
             child2[i] = value1
 
+        child1_types = [config.get_order_type(c) for c in child1]
+        child2_types = [config.get_order_type(c) for c in child2]
         # Iterate over the rest of the values and perform the PMX
         for i in range(length):
             # Skip the values in the crossover range
@@ -116,11 +120,17 @@ class HybridGeneticAlgorithm:
             # Get the values at the current position in each parent
             value1 = parent1[i]
             idx1 = i
+            value1_type = config.get_order_type(value1)
             # If the value is not already in the offspring, copy it over
-            while value1 in child1:
-                idx1 = child1.index(value1)
+            while value1 in child1 or child1_types.count(value1_type) == self.occurences[value1_type]:
+                try:
+                    idx1 = child1.index(value1)
+                except Exception as e:
+                    idx1 = child1_types.index(value1_type)
                 value1 = child2[idx1]
+                value1_type = config.get_order_type(value1)
             child1[i] = value1
+            child1_types[i] = config.get_order_type(value1)
 
         for i in range(length):
             # Skip the values in the crossover range
@@ -130,20 +140,30 @@ class HybridGeneticAlgorithm:
             # Get the values at the current position in each parent
             value2 = parent2[i]
             idx2 = i
+            value2_type = config.get_order_type(value2)
             # If the value is not already in the offspring, copy it over
-            while value2 in child2:
-                idx2 = child2.index(value2)
+            while value2 in child2 or child2_types.count(value2_type) == self.occurences[value2_type]:
+                try:
+                    idx2 = child2.index(value2)
+                except Exception as e:
+                    idx2 = child2_types.index(value2_type)
                 value2 = child1[idx2]
-                    
-            child2[i] = value2
+                value2_type = config.get_order_type(value2)
 
-        if not all([len(set(child1)) == config.ORDER_LENGTH, len(set(child2)) == config.ORDER_LENGTH]):
+            child2[i] = value2
+            child2_types[i] = config.get_order_type(value2)
+
+        if not all([len(set(child1)) == config.ORDER_LENGTH, len(set(child2)) == config.ORDER_LENGTH,
+                    len(set(child1_types)) == config.ORDER_LENGTH, len(set(child2_types)) == config.ORDER_LENGTH]):
             print(cxpoint1, cxpoint2)
             print(len(set(parent1)), len(set(parent2)),
                   config.ORDER_LENGTH)
             print(f"Error Parent: {parent1} \n {parent2}")
             print(len(set(child1)), len(set(child2)),
                   config.ORDER_LENGTH)
+            print(
+                f"Error Parent Type: {[config.get_order_type(p) for p in parent1]} \n {[config.get_order_type(p) for p in parent2]}")
+            print(f"Error Child Type: {child1_types} \n {child2_types}")
             config.exit(f"Error Child: {child1} \n {child2}")
 
         # print(length)
@@ -264,6 +284,8 @@ class HybridGeneticAlgorithm:
         best_time = 0
         best_generation = 0
         population = self.create_population()
+        for item in config.ORDER:
+            self.occurences[item] = config.ORDER.count(item)
         for generation in range(MAX_GENERATIONS):
             individual_order = []
             population = self.evolve_population(
@@ -280,8 +302,8 @@ class HybridGeneticAlgorithm:
                 best_solution = best_individual
                 best_time = current_time
                 best_generation = generation
-            # print(
-                # f"Generation {generation}: Best Solution = {individual_order}, Location = {best_individual}, Best Time = {current_time}")
+            print(
+                f"Generation {generation}: Best Solution = {individual_order}, Location = {best_individual}, Best Time = {current_time}")
 
         # print(population)
         # for p in population:

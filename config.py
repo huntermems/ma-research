@@ -1,13 +1,14 @@
 import sys
+import time
 import numpy as np
 
 # Genetic Algorithm Parameters
 # n
-NUMBER_OF_ROWS = 39
+NUMBER_OF_ROWS = 20
 # m
 NUMBER_OF_COLUMN = 20
 # number of aisle
-NUMBER_OF_AISLE = 3
+NUMBER_OF_AISLE = 4
 # l
 LENGTH_OF_STORAGE_BIN = 6
 # h
@@ -17,19 +18,19 @@ VERTICAL_VELOCITY = 3
 # vx
 HORIZONTAL_VELOCITY = 3
 # vw
-CROSS_VELOCITY = 1
+CROSS_VELOCITY = 2
 # r
 CURVE_LENGTH = 3
 # w
 RACK_DISTANCE = 4
 # sc
-INITIAL_SR_AISLE = 0
+INITIAL_SR_AISLE = 2
 
-DENSITY = 0.15
+DENSITY = 0.18
 
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
 
-ORDER = ['A', 'B']
+ORDER = ['A', 'B', 'C', 'D', 'E']
 
 ORDER_LENGTH = len(ORDER)
 
@@ -66,6 +67,7 @@ if '--use-external-warehouse' in sys.argv:
         warehouse = np.array(racks)
 
 else:
+    np.random.seed(int(time.time()))
     warehouse = np.random.choice([*set(ITEM_NUMERATION), 0], size=(NUMBER_OF_AISLE*2,
                                  NUMBER_OF_ROWS, NUMBER_OF_COLUMN), p=[*item_probability, empty_probability])
     with open('warehouse.txt', 'w') as f:
@@ -94,10 +96,12 @@ for item in ITEM_NUMERATION:
     item_locations = list(zip(*np.where(warehouse == item)))
     item_location_mapping[item] = item_locations
 
+
 def get_order_type(item):
     if item == 0:
         return 0
     return warehouse[item[0]][item[1]][item[2]]
+
 
 def t1(item):
     global current_aisle_of_sr
@@ -158,6 +162,9 @@ def total_t(solution, reset_aisle=True):
     global current_aisle_of_sr
     global largest_aisle_to_be_visited
     global smallest_aisle_to_be_visited
+
+    if len(set(solution)) < len(solution):
+        return float('inf')
 
     if reset_aisle:
         current_aisle_of_sr = INITIAL_SR_AISLE
