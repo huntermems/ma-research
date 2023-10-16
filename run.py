@@ -10,10 +10,10 @@ RAND_GEN = sourcerandom.SourceRandom(
 
 NO_OF_TEST = 10
 
-run_ga = False
+run_ga = True
 run_hga = True
-run_aco = False
-run_enum = False
+run_aco = True
+run_enum = True
 
 if run_ga:
     average_executed_time_wo_ls = []
@@ -45,7 +45,7 @@ if run_aco:
     average_executed_time_w_aco_ls = []
     travel_time_w_aco_ls_list = []
     for _ in range(NO_OF_TEST):
-        local_search_prob = 0.05
+        local_search_prob = 0.2
         start_time_with_aco_ls = time.perf_counter()
         instance = HybridGeneticAlgorithm(random_instance=random.SystemRandom(
             RAND_GEN.randbytes(random.randint(5, 10))))

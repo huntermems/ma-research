@@ -4,7 +4,7 @@ import numpy as np
 
 # Genetic Algorithm Parameters
 # n
-NUMBER_OF_ROWS = 20
+NUMBER_OF_ROWS = 39
 # m
 NUMBER_OF_COLUMN = 20
 # number of aisle
@@ -24,13 +24,13 @@ CURVE_LENGTH = 3
 # w
 RACK_DISTANCE = 4
 # sc
-INITIAL_SR_AISLE = 2
+INITIAL_SR_AISLE = 1
 
 DENSITY = 0.18
 
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
 
-ORDER = ['A', 'B', 'C', 'D', 'E']
+ORDER = ['A', 'B']
 
 ORDER_LENGTH = len(ORDER)
 
