@@ -24,17 +24,18 @@ CURVE_LENGTH = 3
 # w
 RACK_DISTANCE = 4
 # sc
-INITIAL_SR_AISLE = 1
+INITIAL_SR_AISLE = 0
 
-DENSITY = 0.18
+DENSITY = 0.9
 
-ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
+ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'apple', 'banana', 'chocolate', 'diamond', 'elephant', 'firefly', 'giraffe', 'happiness', 'igloo', 'jazz', 'koala', 'lemon', 'mountain', 'nautical', 'ocean', 'penguin', 'quasar', 'rainbow', 'sunshine', 'tiger', 'umbrella', 'volcano', 'whisper', 'xylophone', 'zebra', 'astronomy', 'butterfly', 'cinnamon', 'dolphin', 'elegant', 'flamingo', 'guitar', 'harmony', 'island', 'jubilee', 'kangaroo', 'lighthouse', 'marvelous', 'nirvana', 'orchid', 'paradise', 'quokka', 'radiant', 'serendipity', 'tornado', 'unicorn', 'vivid', 'waterfall', 'xenophobe', 'yesterday', 'zephyr', 'adorable', 'ballet', 'charming', 'dandelion', 'ethereal', 'felicity', 'gratitude', 'huckleberry', 'innocence', 'joyful', 'kindness', 'lullaby', 'magnolia', 'nectarine', 'overture', 'precious', 'quaint', 'serenity', 'tranquil', 'uplifting', 'velvet', 'wonderful', 'xenophile', 'yearning', 'zestful', 'aquamarine', 'blossom', 'cosmic', 'dazzling', 'effervescent', 'fantasy', 'glorious', 'heavenly', 'incandescent', 'jubilant', 'kaleidoscope', 'luminous', 'mesmerize', 'nectar', 'opulent', 'paragon', 'quixotic', 'radiance', 'serendipitous', 'tantalizing', 'ubiquitous',
+                   'vibrant', 'whimsical', 'xenodochial', 'yield', 'zirconium', 'abracadabra', 'bamboo', 'cascade', 'daffodil', 'eclipse', 'flourish', 'glisten', 'hurricane', 'illusion', 'jasmine', 'kaleidoscope', 'labyrinth', 'mysterious', 'nostalgia', 'opal', 'paradox', 'quicksilver', 'radiate', 'serene', 'twilight', 'unison', 'vortex', 'whisper', 'xylophone', 'yacht', 'zeppelin', 'antelope', 'butterfly', 'chimera', 'dandelion', 'ephemeral', 'fascinate', 'gargantuan', 'hologram', 'inspire', 'jubilee', 'kangaroo', 'labyrinth', 'mystical', 'nebula', 'oasis', 'paragon', 'quintessence', 'rhapsody', 'serendipity', 'talisman', 'ubiquity', 'verdant', 'whimsy', 'xenophile', 'yearn', 'zealot', 'allure', 'bliss', 'cascade', 'dainty', 'elusive', 'felicity', 'gossamer', 'hallowed', 'imagine', 'juxtapose', 'kismet', 'lagoon', 'mythical', 'nirvana', 'oceanic', 'paradise', 'quaint', 'resonate', 'serenity', 'tantalize', 'ubiquitous', 'vivid', 'wonder', 'xanadu', 'yearning', 'zephyr', 'ambrosia', 'breathtaking', 'captivate', 'dreamscape', 'effulgent', 'fantasia', 'grace', 'halcyon', 'inspiration', 'jovial', 'kaleidoscope', 'luminous', 'mellifluous', 'nostalgia', 'oasis', 'paragon', 'quixotic', 'resplendent', 'serendipitous', 'tranquil', 'uplifting', 'vernal', 'whimsical', 'xenodochial', 'yearn', 'zenith']
 
-ORDER = ['A', 'B']
+ORDER = ['A', 'B', 'C', 'D', 'E']
 
 ORDER_LENGTH = len(ORDER)
 
-TEST = [(7, 6, 6), (6, 9, 4), (6, 13, 16)]
+TEST = [(1, 23, 4), (1, 1, 3), (1, 4, 11), (0, 16, 8)]
 
 
 current_aisle_of_sr = INITIAL_SR_AISLE
@@ -46,7 +47,8 @@ smallest_aisle_to_be_visited = 0
 
 aisle_rack_mapping = [(0, 1), (2, 3), (4, 5), (6, 7)]
 
-item_probability = [DENSITY for _ in range(len(set(ITEM_NUMERATION)))]
+item_probability = [DENSITY/len(ITEM_NUMERATION)
+                    for _ in range(len(set(ITEM_NUMERATION)))]
 
 empty_probability = 1 - sum(item_probability)
 

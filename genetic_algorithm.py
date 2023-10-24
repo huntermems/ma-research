@@ -4,7 +4,7 @@ import config
 import itertools
 from ant_colony_algorithm import AntColonyOptimization
 
-POPULATION_SIZE = 100
+POPULATION_SIZE = 20
 MAX_GENERATIONS = 300
 MUTATION_PROBABILITY = 0.4
 CROSSOVER_PROBABILITY = 0.6
@@ -89,7 +89,7 @@ class HybridGeneticAlgorithm:
         # Choose two random crossover points
         cxpoint1 = 0
         cxpoint2 = 0
-        while cxpoint1 == cxpoint2 or set([cxpoint1, cxpoint2]) == set([0, length - 1]) and length > 2:
+        while cxpoint1 == cxpoint2 or (set([cxpoint1, cxpoint2]) == set([0, length - 1]) and length > 2):
             cxpoint1 = self.random_instance.randint(0, length - 1)
             cxpoint2 = self.random_instance.randint(0, length - 1)
         if cxpoint1 > cxpoint2:

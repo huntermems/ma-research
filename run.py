@@ -8,12 +8,12 @@ from enumeration import Enumeration
 RAND_GEN = sourcerandom.SourceRandom(
     source=sourcerandom.OnlineRandomnessSource.QRNG_ANU)
 
-NO_OF_TEST = 10
+NO_OF_TEST = 1
 
 run_ga = True
 run_hga = True
 run_aco = True
-run_enum = True
+run_enum = False
 
 if run_ga:
     average_executed_time_wo_ls = []
