@@ -6,7 +6,7 @@ from ant_colony_algorithm import AntColonyOptimization
 
 POPULATION_SIZE = 20
 MAX_GENERATIONS = 300
-MUTATION_PROBABILITY = 0.4
+MUTATION_PROBABILITY = 0.1
 CROSSOVER_PROBABILITY = 0.6
 
 # Local Search Parameters

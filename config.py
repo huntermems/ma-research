@@ -10,9 +10,9 @@ NUMBER_OF_COLUMN = 20
 # number of aisle
 NUMBER_OF_AISLE = 4
 # l
-LENGTH_OF_STORAGE_BIN = 6
+LENGTH_OF_STORAGE_BIN = 13.82
 # h
-HEIGHT_OF_STORAGE_BIN = 6
+HEIGHT_OF_STORAGE_BIN = 7.1
 # vy
 VERTICAL_VELOCITY = 3
 # vx
@@ -28,10 +28,20 @@ INITIAL_SR_AISLE = 0
 
 DENSITY = 0.9
 
+T_H = LENGTH_OF_STORAGE_BIN*NUMBER_OF_COLUMN/HORIZONTAL_VELOCITY
+
+T_V = HEIGHT_OF_STORAGE_BIN*NUMBER_OF_ROWS/VERTICAL_VELOCITY
+
+BIG_T = max([ T_H, T_V ])
+
+SHAPE_FACTOR = min([T_H / BIG_T, T_V / BIG_T])
+
+TIME_RATIO = 1 + (np.power(SHAPE_FACTOR, 2))*1/3
+
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'apple', 'banana', 'chocolate', 'diamond', 'elephant', 'firefly', 'giraffe', 'happiness', 'igloo', 'jazz', 'koala', 'lemon', 'mountain', 'nautical', 'ocean', 'penguin', 'quasar', 'rainbow', 'sunshine', 'tiger', 'umbrella', 'volcano', 'whisper', 'xylophone', 'zebra', 'astronomy', 'butterfly', 'cinnamon', 'dolphin', 'elegant', 'flamingo', 'guitar', 'harmony', 'island', 'jubilee', 'kangaroo', 'lighthouse', 'marvelous', 'nirvana', 'orchid', 'paradise', 'quokka', 'radiant', 'serendipity', 'tornado', 'unicorn', 'vivid', 'waterfall', 'xenophobe', 'yesterday', 'zephyr', 'adorable', 'ballet', 'charming', 'dandelion', 'ethereal', 'felicity', 'gratitude', 'huckleberry', 'innocence', 'joyful', 'kindness', 'lullaby', 'magnolia', 'nectarine', 'overture', 'precious', 'quaint', 'serenity', 'tranquil', 'uplifting', 'velvet', 'wonderful', 'xenophile', 'yearning', 'zestful', 'aquamarine', 'blossom', 'cosmic', 'dazzling', 'effervescent', 'fantasy', 'glorious', 'heavenly', 'incandescent', 'jubilant', 'kaleidoscope', 'luminous', 'mesmerize', 'nectar', 'opulent', 'paragon', 'quixotic', 'radiance', 'serendipitous', 'tantalizing', 'ubiquitous',
                    'vibrant', 'whimsical', 'xenodochial', 'yield', 'zirconium', 'abracadabra', 'bamboo', 'cascade', 'daffodil', 'eclipse', 'flourish', 'glisten', 'hurricane', 'illusion', 'jasmine', 'kaleidoscope', 'labyrinth', 'mysterious', 'nostalgia', 'opal', 'paradox', 'quicksilver', 'radiate', 'serene', 'twilight', 'unison', 'vortex', 'whisper', 'xylophone', 'yacht', 'zeppelin', 'antelope', 'butterfly', 'chimera', 'dandelion', 'ephemeral', 'fascinate', 'gargantuan', 'hologram', 'inspire', 'jubilee', 'kangaroo', 'labyrinth', 'mystical', 'nebula', 'oasis', 'paragon', 'quintessence', 'rhapsody', 'serendipity', 'talisman', 'ubiquity', 'verdant', 'whimsy', 'xenophile', 'yearn', 'zealot', 'allure', 'bliss', 'cascade', 'dainty', 'elusive', 'felicity', 'gossamer', 'hallowed', 'imagine', 'juxtapose', 'kismet', 'lagoon', 'mythical', 'nirvana', 'oceanic', 'paradise', 'quaint', 'resonate', 'serenity', 'tantalize', 'ubiquitous', 'vivid', 'wonder', 'xanadu', 'yearning', 'zephyr', 'ambrosia', 'breathtaking', 'captivate', 'dreamscape', 'effulgent', 'fantasia', 'grace', 'halcyon', 'inspiration', 'jovial', 'kaleidoscope', 'luminous', 'mellifluous', 'nostalgia', 'oasis', 'paragon', 'quixotic', 'resplendent', 'serendipitous', 'tranquil', 'uplifting', 'vernal', 'whimsical', 'xenodochial', 'yearn', 'zenith']
 
-ORDER = ['A', 'B', 'C', 'D', 'E']
+ORDER = ['A', 'B', 'C', 'D']
 
 ORDER_LENGTH = len(ORDER)
 
@@ -115,6 +125,7 @@ def t1(item):
             item[2] + 1) * LENGTH_OF_STORAGE_BIN / HORIZONTAL_VELOCITY
         total_time += 2 * \
             round(max(vertical_moving_time, horizontal_moving_time), 1)
+        total_time *= TIME_RATIO
 
     return total_time
 
@@ -125,6 +136,7 @@ def t2(item):
     if item[0] // 2 != current_aisle_of_sr:
         aisle_travel_time = (NUMBER_OF_COLUMN *
                              LENGTH_OF_STORAGE_BIN) / HORIZONTAL_VELOCITY
+        aisle_travel_time *=  TIME_RATIO
         curve_travel_time = 2 * CURVE_LENGTH / CROSS_VELOCITY
         total_time += aisle_travel_time + curve_travel_time
     return total_time
@@ -136,12 +148,13 @@ def t3(item):
     if item[0] // 2 != current_aisle_of_sr:
         partial_horizontal_moving_time = (
             NUMBER_OF_COLUMN - item[2] + 1) * LENGTH_OF_STORAGE_BIN / HORIZONTAL_VELOCITY
+        partial_horizontal_moving_time *= TIME_RATIO
         vertical_moving_time = (item[1] + 1) * \
             HEIGHT_OF_STORAGE_BIN / VERTICAL_VELOCITY
         horizontal_moving_time = (
             item[2] + 1) * LENGTH_OF_STORAGE_BIN / HORIZONTAL_VELOCITY
         total_time += partial_horizontal_moving_time + \
-            max(vertical_moving_time, horizontal_moving_time)
+            max(vertical_moving_time, horizontal_moving_time) * TIME_RATIO
         current_aisle_of_sr = item[0] // 2
     return total_time
 
@@ -196,6 +209,9 @@ if '--test' in sys.argv:
     print(total_t(TEST))
     exit()
 
+if '--shape' in sys.argv:
+    print(SHAPE_FACTOR)
+    exit()
 
 def exit(message=''):
     print(message)

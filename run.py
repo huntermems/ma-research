@@ -13,7 +13,7 @@ NO_OF_TEST = 1
 run_ga = True
 run_hga = True
 run_aco = True
-run_enum = False
+run_enum = True
 
 if run_ga:
     average_executed_time_wo_ls = []
@@ -32,7 +32,7 @@ if run_hga:
     average_executed_time_w_ls = []
     travel_time_w_ls_list = []
     for _ in range(NO_OF_TEST):
-        local_search_prob = 0.2
+        local_search_prob = 0.5
         start_time_with_ls = time.perf_counter()
         instance = HybridGeneticAlgorithm(random_instance=random.SystemRandom(
             RAND_GEN.randbytes(random.randint(5, 10))))
