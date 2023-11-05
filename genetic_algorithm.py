@@ -2,7 +2,7 @@ import numpy as np
 import random
 import config
 import itertools
-from ant_colony_algorithm import AntColonyOptimization
+from hga_aco import HGAAntColonyOptimization
 
 POPULATION_SIZE = 20
 MAX_GENERATIONS = 300
@@ -234,7 +234,7 @@ class HybridGeneticAlgorithm:
     def local_aco_search(self, initial_individual, probablity, max_no_improvement):
         current_individual = initial_individual
         if self.random_instance.random() < probablity:
-            aco = AntColonyOptimization(num_ants=10, num_iterations=5,
+            aco = HGAAntColonyOptimization(num_ants=10, num_iterations=5,
                                         pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1, num_cities=len(current_individual))
             for i in range(len(current_individual)):
                 for j in range(len(current_individual)):

@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-class AntColonyOptimization:
+class HGAAntColonyOptimization:
     def __init__(self, num_ants, num_iterations, pheromone_weight, heuristic_weight, evaporation_rate, num_cities):
         self.num_ants = num_ants
         self.num_iterations = num_iterations
