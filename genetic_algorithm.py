@@ -6,7 +6,7 @@ from hga_aco import HGAAntColonyOptimization
 
 POPULATION_SIZE = 20
 MAX_GENERATIONS = 300
-MUTATION_PROBABILITY = 0.1
+MUTATION_PROBABILITY = 0.2
 CROSSOVER_PROBABILITY = 0.6
 
 # Local Search Parameters
@@ -235,7 +235,7 @@ class HybridGeneticAlgorithm:
         current_individual = initial_individual
         if self.random_instance.random() < probablity:
             aco = HGAAntColonyOptimization(num_ants=10, num_iterations=5,
-                                        pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1, num_cities=len(current_individual))
+                                           pheromone_weight=1.0, heuristic_weight=2.0, evaporation_rate=0.1, num_cities=len(current_individual))
             for i in range(len(current_individual)):
                 for j in range(len(current_individual)):
                     aco.add_distance(i, j, total_time(

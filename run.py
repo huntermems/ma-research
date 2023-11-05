@@ -13,9 +13,9 @@ NO_OF_TEST = 1
 
 run_ga = True
 run_hga = True
-run_hga_aco = False
+run_hga_aco = True
 run_aco = True
-run_enum = True
+run_enum = False
 
 if run_ga:
     average_executed_time_wo_ls = []
@@ -61,8 +61,15 @@ if run_aco:
     travel_time_w_aco = []
     for _ in range(NO_OF_TEST):
         start_time_aco = time.perf_counter()
-        aco = AntColonyOptimization(50, 20, 1, 2, 0.2, config.ORDER, config.item_location_mapping, randonInstance=random.SystemRandom(
-            RAND_GEN.randbytes(random.randint(5, 10))))
+        aco = AntColonyOptimization(
+            numAnts=300,
+            numIterations=10,
+            pheromoneWeight=8,
+            heuristicWeight=3,
+            evaporationRate=0.1,
+            order=config.ORDER,
+            itemMapping=config.item_location_mapping,
+            randonInstance=random.SystemRandom(RAND_GEN.randbytes(random.randint(5, 10))))
         bestPath, bestPathLength = aco.run()
         executed_time_with_aco = time.perf_counter() - start_time_aco
         average_executed_time_w_aco.append(executed_time_with_aco)
