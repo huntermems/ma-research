@@ -1,9 +1,11 @@
+import math
 import config
 import time
 import random
 import sourcerandom
 from genetic_algorithm import HybridGeneticAlgorithm
 from aco import AntColonyOptimization
+from pso import PSO
 from enumeration import Enumeration
 
 RAND_GEN = sourcerandom.SourceRandom(
@@ -14,7 +16,8 @@ NO_OF_TEST = 1
 run_ga = True
 run_hga = True
 run_hga_aco = True
-run_aco = True
+run_aco = False
+run_pso = True
 run_enum = False
 
 if run_ga:
@@ -69,11 +72,22 @@ if run_aco:
             evaporationRate=0.1,
             order=config.ORDER,
             itemMapping=config.item_location_mapping,
-            randonInstance=random.SystemRandom(RAND_GEN.randbytes(random.randint(5, 10))))
+            randomInstance=random.SystemRandom(RAND_GEN.randbytes(random.randint(5, 10))))
         bestPath, bestPathLength = aco.run()
         executed_time_with_aco = time.perf_counter() - start_time_aco
         average_executed_time_w_aco.append(executed_time_with_aco)
         travel_time_w_aco.append(bestPathLength)
+
+if run_pso:
+    average_executed_time_pso = []
+    travel_time_pso = []
+    for _ in range(NO_OF_TEST):
+        start_time_pso = time.perf_counter()
+        pso = PSO(numParticles=min([math.factorial(config.ORDER_LENGTH), 20]))
+        bestPathPSO, bestTimePSO = pso.run()
+        executed_time_pso = time.perf_counter() - start_time_pso
+        average_executed_time_pso.append(executed_time_pso)
+        travel_time_pso.append(bestTimePSO)
 
 if run_enum:
     start_time_enum = time.perf_counter()
@@ -89,6 +103,8 @@ if run_hga_aco:
     print("Travel time with aco local search: ", travel_time_w_aco_ls_list)
 if run_aco:
     print("Travel time with original aco search: ", travel_time_w_aco)
+if run_pso:
+    print("Travel time with pso search: ", travel_time_pso)
 if run_enum:
     print("Travel time with enum: ", travel_time_with_enum)
 
@@ -102,6 +118,9 @@ if run_hga_aco:
 if run_aco:
     print("Time executed with original aco search: ",
           average_executed_time_w_aco)
+if run_pso:
+    print("Time executed with pso search: ",
+          average_executed_time_pso)
 if run_enum:
     print("Time executed with enum: ", executed_time_with_enum)
 
@@ -115,5 +134,8 @@ if run_hga_aco:
     print("Average Time executed with aco local search: ",
           sum(average_executed_time_w_aco_ls)/NO_OF_TEST)
 if run_aco:
-    print("Average Time executed with aco local search: ",
+    print("Average Time executed with original aco: ",
           sum(average_executed_time_w_aco)/NO_OF_TEST)
+if run_pso:
+    print("Average Time executed with pso: ",
+          sum(average_executed_time_pso)/NO_OF_TEST)

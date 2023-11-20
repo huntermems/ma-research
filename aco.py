@@ -2,9 +2,11 @@ import numpy as np
 from itertools import chain
 import random
 from config import get_order_type, total_t
-from collections import defaultdict 
+from collections import defaultdict
 
-tree = lambda: defaultdict(tree)
+
+def tree(): return defaultdict(tree)
+
 
 class AntColonyOptimization:
 
@@ -13,12 +15,11 @@ class AntColonyOptimization:
     #     pheromoneWeight: Float
     #     heuristicWeight: Float
     #     evaporationRate: Float
-    #     order: Array char[] 
+    #     order: Array char[]
     #     itemMapping: dict
     # """
 
-
-    def __init__(self, numAnts=100, numIterations=100, pheromoneWeight=1.0, heuristicWeight=2.0, evaporationRate=1.0, order=[], itemMapping={}, randonInstance=random.SystemRandom()):
+    def __init__(self, numAnts=100, numIterations=100, pheromoneWeight=1.0, heuristicWeight=2.0, evaporationRate=1.0, order=[], itemMapping={}, randomInstance=random.SystemRandom()):
         self.numAnts = numAnts
         self.numIterations = numIterations
         self.evaporationRate = evaporationRate
@@ -27,10 +28,10 @@ class AntColonyOptimization:
         self.order = order
         self.orderLength = len(order)
         self.itemMapping = itemMapping
-        self.randomInstance = randonInstance
+        self.randomInstance = randomInstance
         self.distanceMapping = tree()
         self.pheromoneMapping = tree()
-    
+
     def computeDistance(self, city1, city2):
         distance = total_t([city1, city2], False)
         return distance
@@ -40,23 +41,21 @@ class AntColonyOptimization:
         bestPathLength = np.inf
         for _ in range(self.numIterations):
             paths = []
-            pathLengths = []
             for ant in range(self.numAnts):
-               path = self.constructPath()
-               pathLength = self.getPathLength(path)
-               paths.append(path)
-               pathLengths.append(pathLength)
-               if pathLength < bestPathLength:
-                bestPath = path
-                bestPathLength = pathLength
-            
-            self.updatePheromone(paths, pathLengths)
-        
+                path = self.constructPath()
+                pathLength = self.getPathLength(path)
+                paths.append(path)
+                if pathLength < bestPathLength:
+                    bestPath = path
+                    bestPathLength = pathLength
+
+            self.updatePheromone(paths)
+
         return bestPath, bestPathLength
-    
+
     def getPathLength(self, path):
         return total_t(path)
-    
+
     def constructPath(self):
         visitedCities = []
         visitedCityTypes = []
@@ -67,7 +66,7 @@ class AntColonyOptimization:
         # Add the city to the visted
         visitedCities.append(firstCity)
         visitedCityTypes.append(firstCityType)
-        
+
         while len(visitedCityTypes) < self.orderLength:
             nextCity = self.getNextCity(firstCity, visitedCityTypes)
             nextCityType = get_order_type(nextCity)
@@ -77,7 +76,8 @@ class AntColonyOptimization:
         return visitedCities
 
     def getCityPool(self, itemTypes):
-        cityPool = list(chain.from_iterable([value for key, value in self.itemMapping.items() if key in itemTypes]))
+        cityPool = list(chain.from_iterable(
+            [value for key, value in self.itemMapping.items() if key in itemTypes]))
         return cityPool
 
     def getNextCity(self, currentCity, visitedCityTypes):
@@ -89,7 +89,7 @@ class AntColonyOptimization:
         if all(c == 0 for c in probabilities):
             return self.randomInstance.choices(cityPool)[0]
         return self.randomInstance.choices(cityPool, probabilities)[0]
-    
+
     def calculateProbabilities(self, currentCity, cityPool):
         pheromoneSum = 0.0
         pheromoneCopy = self.pheromoneMapping.copy()
@@ -97,10 +97,10 @@ class AntColonyOptimization:
             pheromone = 0
             if pheromoneCopy[currentCity][city] and (isinstance(pheromoneCopy[currentCity][city], float) or isinstance(pheromoneCopy[currentCity][city], int)):
                 pheromone = pheromoneCopy[currentCity][city] ** self.pheromoneWeight
-            
-            heuristic = (1.0 / self.computeDistance(currentCity, city)) ** self.heuristicWeight
+
+            heuristic = (1.0 / self.computeDistance(currentCity,
+                         city)) ** self.heuristicWeight
             pheromoneSum += pheromone * heuristic
-            
 
         probabilities = []
 
@@ -109,22 +109,24 @@ class AntColonyOptimization:
             if pheromoneCopy[currentCity][city] and (isinstance(pheromoneCopy[currentCity][city], float) or isinstance(pheromoneCopy[currentCity][city], int)):
                 pheromone = pheromoneCopy[currentCity][city] ** self.pheromoneWeight
 
-            heuristic = (1.0 / self.computeDistance(currentCity, city)) ** self.heuristicWeight
-            
-            probability = (pheromone * heuristic) / pheromoneSum if pheromoneSum else 0
+            heuristic = (1.0 / self.computeDistance(currentCity,
+                         city)) ** self.heuristicWeight
+
+            probability = (pheromone * heuristic) / \
+                pheromoneSum if pheromoneSum else 0
             probabilities.append(probability)
 
-
         return probabilities
-    
-    def updatePheromone(self, paths, pathLengths):
-        
+
+    def updatePheromone(self, paths):
+
         for i, path in enumerate(paths):
             for j in range(len(path) - 1):
                 city1 = path[j]
                 city2 = path[j + 1]
                 self.pheromoneMapping[city1][city2] = 0
-                self.pheromoneMapping[city1][city2] += (1.0 - self.evaporationRate) * 1.0 / pathLengths[i]
+                self.pheromoneMapping[city1][city2] += (
+                    1.0 - self.evaporationRate) * 1.0 / self.getPathLength([city1, city2])
 
     def printPool(self):
         cityPool = self.getCityPool(self.order)
