@@ -48,13 +48,19 @@ class HybridGeneticAlgorithm:
         return individual
 
     def create_population(self):
+        global POPULATION_SIZE
         population = []
+        if config.ORDER_LENGTH == 1:
+            POPULATION_SIZE = len(config.item_location_mapping[config.ORDER[0]])
         for _ in range(POPULATION_SIZE):
             while True:
                 individual = self.create_individual()
                 if individual not in population:
                     population.append(individual)
                     break
+                if config.ORDER_LENGTH == 1:
+                    if len(population) >= len(config.item_location_mapping[config.ORDER[0]]):
+                        break
         return population
 
     def evaluate_population(self, population):
@@ -67,7 +73,7 @@ class HybridGeneticAlgorithm:
         while i < num_parents:
             max_value = max(copy_fitnesses)
             idx = copy_fitnesses.index(max_value)
-            if i >= 1 and population[idx] in parents:
+            if config.ORDER_LENGTH != 1 and i >= 1 and population[idx] in parents:
                 copy_fitnesses[idx] = -99999
                 continue
             parents.append(population[idx])
@@ -78,6 +84,8 @@ class HybridGeneticAlgorithm:
 
     def crossover(self, parents):
         """Perform PMX crossover on two parent chromosomes"""
+        if config.ORDER_LENGTH == 1:
+            return parents[0], parents[1]
         if self.random_instance.random() > CROSSOVER_PROBABILITY:
             return None, None
         parent1 = parents[0]
@@ -242,6 +250,8 @@ class HybridGeneticAlgorithm:
                         [current_individual[i], current_individual[j]], reset_aisle=False))
 
             best_path, _ = aco.run()
+            if config.ORDER_LENGTH == 1:
+                best_path = [0]
             current_individual = [current_individual[b] for b in best_path]
             config.current_aisle_of_sr = config.INITIAL_SR_AISLE
         return current_individual

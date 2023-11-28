@@ -55,9 +55,10 @@ class PSO:
     bestFitness = float('-inf')
     bestTime = None
 
-    def __init__(self, numParticles=20, numDomain=200, numIterations=30,
+    def __init__(self, orderLength, numParticles=10, numDomain=10, numIterations=30,
                  cognitiveWeight=0.5, socialWeight=0.5,
                  randomInstance=random.SystemRandom()):
+        self.orderLength = orderLength
         self.numParticles = numParticles
         self.numDomain = numDomain
         self.numIterations = numIterations
@@ -82,8 +83,11 @@ class PSO:
             searchDomainCopy = searchDomain.copy()
             while searchDomainCopy in existingDomain:
                 self.randomInstance.shuffle(searchDomainCopy)
-            velocity = SwapSequence(
-                [tuple(self.randomInstance.sample(range(0, 4), 2))])
+            if self.orderLength == 1:
+                velocity = SwapSequence([(0,0)])
+            else:
+                velocity = SwapSequence(
+                [tuple(self.randomInstance.sample(range(0, self.orderLength), 2))])
             existingDomain.append(searchDomainCopy)
             particle = Particle(searchDomainCopy, velocity)
             particles.append(particle)
@@ -141,6 +145,7 @@ class PSO:
                         self.bestTime = config.total_t(
                             self.bestPosition.location)
 
+                for particle in particles:
                     particle.velocity = self.updateVelocity(
                         particle, domainBestPosition)
                     particle.position += particle.velocity

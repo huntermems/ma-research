@@ -19,7 +19,7 @@ class AntColonyOptimization:
     #     itemMapping: dict
     # """
 
-    def __init__(self, numAnts=100, numIterations=100, pheromoneWeight=1.0, heuristicWeight=2.0, evaporationRate=1.0, order=[], itemMapping={}, randomInstance=random.SystemRandom()):
+    def __init__(self, numAnts=100, numIterations=100, pheromoneWeight=1.0, heuristicWeight=2.0, evaporationRate=0.5, order=[], itemMapping={}, randomInstance=random.SystemRandom()):
         self.numAnts = numAnts
         self.numIterations = numIterations
         self.evaporationRate = evaporationRate
@@ -29,7 +29,6 @@ class AntColonyOptimization:
         self.orderLength = len(order)
         self.itemMapping = itemMapping
         self.randomInstance = randomInstance
-        self.distanceMapping = tree()
         self.pheromoneMapping = tree()
 
     def computeDistance(self, city1, city2):
@@ -112,8 +111,8 @@ class AntColonyOptimization:
             heuristic = (1.0 / self.computeDistance(currentCity,
                          city)) ** self.heuristicWeight
 
-            probability = (pheromone * heuristic) / \
-                pheromoneSum if pheromoneSum else 0
+            probability = ((pheromone * heuristic) / \
+                pheromoneSum) if pheromoneSum else 0
             probabilities.append(probability)
 
         return probabilities

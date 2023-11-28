@@ -4,19 +4,19 @@ import numpy as np
 
 # Genetic Algorithm Parameters
 # n
-NUMBER_OF_ROWS = 39
+NUMBER_OF_ROWS = 20
 # m
-NUMBER_OF_COLUMN = 20
+NUMBER_OF_COLUMN = 39
 # number of aisle
 NUMBER_OF_AISLE = 4
 # l
-LENGTH_OF_STORAGE_BIN = 13.82
+LENGTH_OF_STORAGE_BIN = 115.5
 # h
-HEIGHT_OF_STORAGE_BIN = 7.1
+HEIGHT_OF_STORAGE_BIN = 16.7
 # vy
 VERTICAL_VELOCITY = 3
 # vx
-HORIZONTAL_VELOCITY = 5
+HORIZONTAL_VELOCITY = 7
 # vw
 CROSS_VELOCITY = 2
 # r
@@ -26,7 +26,7 @@ RACK_DISTANCE = 4
 # sc
 INITIAL_SR_AISLE = 0
 
-DENSITY = 0.9
+DENSITY = 0.75
 
 T_H = LENGTH_OF_STORAGE_BIN*NUMBER_OF_COLUMN/HORIZONTAL_VELOCITY
 
@@ -38,10 +38,10 @@ SHAPE_FACTOR = min([T_H / BIG_T, T_V / BIG_T])
 
 TIME_RATIO = 1 + (np.power(SHAPE_FACTOR, 2))*1/3
 
-ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'apple', 'banana', 'chocolate', 'diamond', 'elephant', 'firefly', 'giraffe', 'happiness', 'igloo', 'jazz', 'koala', 'lemon', 'mountain', 'nautical', 'ocean', 'penguin', 'quasar', 'rainbow', 'sunshine', 'tiger', 'umbrella', 'volcano', 'whisper', 'xylophone', 'zebra', 'astronomy', 'butterfly', 'cinnamon', 'dolphin', 'elegant', 'flamingo', 'guitar', 'harmony', 'island', 'jubilee', 'kangaroo', 'lighthouse', 'marvelous', 'nirvana', 'orchid', 'paradise', 'quokka', 'radiant', 'serendipity', 'tornado', 'unicorn', 'vivid', 'waterfall', 'xenophobe', 'yesterday', 'zephyr', 'adorable', 'ballet', 'charming', 'dandelion', 'ethereal', 'felicity', 'gratitude', 'huckleberry', 'innocence', 'joyful', 'kindness', 'lullaby', 'magnolia', 'nectarine', 'overture', 'precious', 'quaint', 'serenity', 'tranquil', 'uplifting', 'velvet', 'wonderful', 'xenophile', 'yearning', 'zestful', 'aquamarine', 'blossom', 'cosmic', 'dazzling', 'effervescent', 'fantasy', 'glorious', 'heavenly', 'incandescent', 'jubilant', 'kaleidoscope', 'luminous', 'mesmerize', 'nectar', 'opulent', 'paragon', 'quixotic', 'radiance', 'serendipitous', 'tantalizing', 'ubiquitous',
-                   'vibrant', 'whimsical', 'xenodochial', 'yield', 'zirconium', 'abracadabra', 'bamboo', 'cascade', 'daffodil', 'eclipse', 'flourish', 'glisten', 'hurricane', 'illusion', 'jasmine', 'kaleidoscope', 'labyrinth', 'mysterious', 'nostalgia', 'opal', 'paradox', 'quicksilver', 'radiate', 'serene', 'twilight', 'unison', 'vortex', 'whisper', 'xylophone', 'yacht', 'zeppelin', 'antelope', 'butterfly', 'chimera', 'dandelion', 'ephemeral', 'fascinate', 'gargantuan', 'hologram', 'inspire', 'jubilee', 'kangaroo', 'labyrinth', 'mystical', 'nebula', 'oasis', 'paragon', 'quintessence', 'rhapsody', 'serendipity', 'talisman', 'ubiquity', 'verdant', 'whimsy', 'xenophile', 'yearn', 'zealot', 'allure', 'bliss', 'cascade', 'dainty', 'elusive', 'felicity', 'gossamer', 'hallowed', 'imagine', 'juxtapose', 'kismet', 'lagoon', 'mythical', 'nirvana', 'oceanic', 'paradise', 'quaint', 'resonate', 'serenity', 'tantalize', 'ubiquitous', 'vivid', 'wonder', 'xanadu', 'yearning', 'zephyr', 'ambrosia', 'breathtaking', 'captivate', 'dreamscape', 'effulgent', 'fantasia', 'grace', 'halcyon', 'inspiration', 'jovial', 'kaleidoscope', 'luminous', 'mellifluous', 'nostalgia', 'oasis', 'paragon', 'quixotic', 'resplendent', 'serendipitous', 'tranquil', 'uplifting', 'vernal', 'whimsical', 'xenodochial', 'yearn', 'zenith']
+ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
+# 'quixotic', 'nebula', 'luminous', 'resplendent', 'zephyr', 'ephemeral', 'enigmatic', 'quizzical', 'halcyon', 'cascade', 'ethereal', 'obfuscate', 'jubilant', 'cacophony', 'epiphany', 'surreptitious', 'mellifluous'
 
-ORDER = ['A', 'B', 'C', 'D', 'E']
+ORDER = ['A']
 
 ORDER_LENGTH = len(ORDER)
 
@@ -61,8 +61,6 @@ item_probability = [DENSITY/len(ITEM_NUMERATION)
                     for _ in range(len(set(ITEM_NUMERATION)))]
 
 empty_probability = 1 - sum(item_probability)
-
-print(sys.argv)
 if '--use-external-warehouse' in sys.argv:
     warehouse = None
     racks = []
@@ -107,6 +105,36 @@ item_location_mapping = {}
 for item in ITEM_NUMERATION:
     item_locations = list(zip(*np.where(warehouse == item)))
     item_location_mapping[item] = item_locations
+
+def recompute():
+    global warehouse
+    global item_probability
+    global empty_probability
+    global item_location_mapping
+    global index_of_items
+    np.random.seed(int(time.time()))
+    item_probability = [DENSITY/len(ITEM_NUMERATION)
+                    for _ in range(len(set(ITEM_NUMERATION)))]
+    empty_probability = 1 - sum(item_probability)
+    warehouse = np.random.choice([*set(ITEM_NUMERATION), 0], size=(NUMBER_OF_AISLE*2,
+                                 NUMBER_OF_ROWS, NUMBER_OF_COLUMN), p=[*item_probability, empty_probability])
+    with open('warehouse.txt', 'w') as f:
+        for idx, rack in enumerate(warehouse):
+            for ridx, row in enumerate(rack):
+                f.write(np.array2string(row, separator=', ', max_line_width=10000, formatter={
+                        'str_kind': lambda x: x})[1:-1])
+                if ridx != len(rack) - 1:
+                    f.write('\n')
+            if idx != len(warehouse) - 1:
+                f.write('\n\n')
+    
+        index_of_items = list(zip(*np.where(warehouse != '0')))
+
+        item_location_mapping = {}
+
+        for item in ITEM_NUMERATION:
+            item_locations = list(zip(*np.where(warehouse == item)))
+            item_location_mapping[item] = item_locations
 
 
 def get_order_type(item):

@@ -1,3 +1,4 @@
-a = [[(0,0,0),(0,0,1),(0,0,2)],[(0,0,0),(0,2,1),(0,0,2)]]
+import config
 
-print([(0,0,0),(0,7,1),(0,0,2)] in a)
+config.HEIGHT_OF_STORAGE_BIN = 18503185
+print(config.HEIGHT_OF_STORAGE_BIN)
