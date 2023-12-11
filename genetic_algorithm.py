@@ -313,7 +313,7 @@ class HybridGeneticAlgorithm:
                 best_time = current_time
                 best_generation = generation
             print(
-                f"Generation {generation}: Best Solution = {individual_order}, Location = {best_individual}, Best Time = {current_time}")
+                f"{'ACO ' if aco else ''}Generation {generation}: Best Solution = {individual_order}, Location = {best_individual}, Best Time = {current_time}")
 
         # print(population)
         # for p in population:

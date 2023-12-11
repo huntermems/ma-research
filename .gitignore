@@ -2,3 +2,4 @@
 warehouse.txt
 pyenv
 __pycache__
+result-*

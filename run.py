@@ -1,5 +1,6 @@
 import math
 import config
+import datetime
 import time
 import random
 import sourcerandom
@@ -23,6 +24,7 @@ def test():
     run_pso = True
     run_enum = True
     results = []
+    f = open(f'result-{str(datetime.datetime.now())}.txt', 'w')
     for density in [0.6,0.75,0.9]:
         config.DENSITY = density
         for aisle in [1,2,3,4]:
@@ -74,7 +76,7 @@ def test():
 
                 if run_hga:
                     for _ in range(NO_OF_TEST):
-                        local_search_prob = 0.3
+                        local_search_prob = 0.3 if config.ORDER_LENGTH > 1 else 0
                         start_time_with_ls = time.perf_counter()
                         instance = HybridGeneticAlgorithm(random_instance=random.SystemRandom(
                             RAND_GEN.randbytes(random.randint(5, 10))))
@@ -85,7 +87,7 @@ def test():
 
                 if run_hga_aco:
                     for _ in range(NO_OF_TEST):
-                        local_search_prob = 0.2
+                        local_search_prob = 0.2 if config.ORDER_LENGTH > 1 else 0
                         start_time_with_aco_ls = time.perf_counter()
                         instance = HybridGeneticAlgorithm(random_instance=random.SystemRandom(
                             RAND_GEN.randbytes(random.randint(5, 10))))
@@ -121,14 +123,14 @@ def test():
                         result.append(executed_time_pso)
                 result = [round(n,2) for n in result]
                 result = [str(n) for n in result]
-                state = f"Aisles no: {aisle}, Shape: {shape}, Density: {density}, {','.join(result)}"
-                # print(state)
-                results.append(state)
+                state = f"Number of item: {config.ORDER_LENGTH} Aisles no: {aisle}, Shape: {shape}, Density: {density}, {','.join(result)}\n"
+                f.write(state)
+                f.flush()
+    f.close()
     return results
 
-results = test()
-for r in results:
-    print(r)
+test()
+
       
 
                 

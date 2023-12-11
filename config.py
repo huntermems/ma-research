@@ -41,7 +41,7 @@ TIME_RATIO = 1 + (np.power(SHAPE_FACTOR, 2))*1/3
 ITEM_NUMERATION = ['A', 'B', 'C', 'D', 'E']
 # 'quixotic', 'nebula', 'luminous', 'resplendent', 'zephyr', 'ephemeral', 'enigmatic', 'quizzical', 'halcyon', 'cascade', 'ethereal', 'obfuscate', 'jubilant', 'cacophony', 'epiphany', 'surreptitious', 'mellifluous'
 
-ORDER = ['A']
+ORDER = ['A', 'B']
 
 ORDER_LENGTH = len(ORDER)
 
