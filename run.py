@@ -29,6 +29,13 @@ def test():
         config.DENSITY = density
         for aisle in [1,2,3,4]:
             config.NUMBER_OF_AISLE = aisle
+            if aisle == 4:
+                run_enum = False
+            else:
+                run_enum = True
+            if aisle > 2:
+                config.ITEM_NUMERATION = config.BIG_ITEM_NUMERATION
+                config.recompute()
             for shape in [1,0.73,0.6]:
                 if shape == 1:
                     config.HEIGHT_OF_STORAGE_BIN = 3.4
